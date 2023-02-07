@@ -1,6 +1,8 @@
 ---
 title: "Library_Metadata_Analysis"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 date: "2023-02-07"
 ---
 
@@ -112,7 +114,6 @@ heatmap(datos$V15,datos$V14)
 
 
 ####################
-```
 
 ## R Markdown
 

@@ -1,12 +1,26 @@
-library(ggplot2)
+---
+title: "Library_Metadata_Analysis"
+output: pdf_document
+date: "2023-02-07"
+---
 
-############################Analyze Full
+```{r loadpackages, include=FALSE}
+library(ggplot2)
 
 datos<-read.delim("Steam_Metadata_Full_marko_pakete.txt",header = F)
 
-#Base data
+```
+
+#HowLongToBeat method accuracy 
+
+We analyze the accuracy of the HowLongToBeat methodology. Each hit to the database is related to a similarity index. If we take the total number of hits
+
+############################Analyze Full
+
 
 #Number of entires with HowLong data
+
+
 
 print(dim(datos[!is.na(datos$V3) &  !is.na(datos$V4),])[1])
 
@@ -29,7 +43,7 @@ datos_lim<-datos_lim[datos_lim[,4]>0,]
 
 ggplot(datos_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
 
-# A lot of sport sim games and aura kingdom (qué es, describirlo)
+# A lot of sport sim games and aura kingdom (qu? es, describirlo)
 
 datos_lim<-datos_lim[!grepl("Football Manager",datos_lim[,1]) & datos_lim[,1]!="Aura Kingdom",]
 
@@ -54,7 +68,7 @@ datos_lim[datos_lim$V5<1,c(1,2,5)][1:20,]
 datos<-read.delim("Steam_Library_Metadata_marko_pakete.txt",header = T)
 
 
-###### Número de juegos, tiempo total de juego, tiempo medio de juego, conteo de generos, puntuación media y desviación, número de juegos por develop y publisher
+###### N?mero de juegos, tiempo total de juego, tiempo medio de juego, conteo de generos, puntuaci?n media y desviaci?n, n?mero de juegos por develop y publisher
 
 #Number of entries
 
@@ -90,7 +104,7 @@ datos_lim<-datos_lim[datos_lim[,8]>0,]
 
 mean(datos_lim[,8])
 
-######## Pensar cómo representar valoración de los juegos por compañía y por año
+######## Pensar c?mo representar valoraci?n de los juegos por compa??a y por a?o
 
 factor(datos$V14)
 
@@ -98,3 +112,24 @@ heatmap(datos$V15,datos$V14)
 
 
 ####################
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

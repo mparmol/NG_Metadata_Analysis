@@ -1,5 +1,3 @@
-Library_Metadata_Analysis
-================
 2023-02-07
 
 \#HowLongToBeat method accuracy

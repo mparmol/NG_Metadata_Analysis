@@ -129,12 +129,28 @@ based game we should focus on the games that have a really low time to
 complete (less than 5h) but insane time for 100% finishing.
 
 ``` r
-datos_lim<-datos_lim[datos_lim$V3<5,]
+datos_lim<-datos_lim[datos_lim$V3<=5,]
 
 ggplot(datos_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
 ```
 
 ![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+This representation is not the best option for lloking at the data,
+let’s represent it as barplots
+
+``` r
+datos_lim<-datos_lim[datos_lim$V3<=1,]
+
+ggplot(datos_lim, aes(V3,V4,label=V1)) + geom_jitter(position = position_jitter(seed = 1)) + geom_text(position = position_jitter(seed = 1)) + theme_bw()
+```
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+This way you can take a closer look at games that will only take an hour
+to finish, most of them Arcade games, but will take up to 80 hours to
+finish completely, in the case of King of Fighters ’98 Ultimate Match
+Final Edition. (ESTO ES MEJOR HACER BoxPlot y mostrar solo los puntos
+que sean outlier…cómo?)
 
 ################################# Analyze Steam_library
 

@@ -104,10 +104,32 @@ ggplot(datos_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(h
 
 ![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
-A lot of sport sim games and aura kingdom are the games that show the
-most biased distribution when comparing both parameters, based in
-farming and repetition. Aura Kingdom is a MMO, so is easy to think on it
-as farming realted achivements.
+A lot of sport simulation games, concretely Football Manager games, and
+Aura Kingdom are the games that show the most biased distribution when
+comparing both parameters, based in farming and repetition. Football
+Manager games surround 1000h of game play to complete it at a 100%,
+while Aura Kingdom, a MMO, is up to 9000h to finish it. It is easy to
+think on these as farming related achievements that will take an insane
+amount of time.
+
+But we can see much using this kind of approach, so we better create a
+index to save the games that are more biased according to the difference
+beeteen finished and 100% games
+
+``` r
+datos_lim$time_index<-datos_lim$V4/datos_lim$V3
+
+datos_lim <- datos_lim[order(as.factor(datos_lim$time_index),decreasing = T),]
+datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
+
+#time_rel<-datos_lim[order(datos_lim$time_index,decreasing=TRUE),]
+
+#ggplot(time_rel[1:5,],aes(V1,time_index)) + geom_bar()
+
+ggplot(datos_lim[1:30,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
+```
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 If we remove these games we could focus on the next most biased games
 
@@ -117,7 +139,7 @@ datos_lim<-datos_lim[!grepl("Football Manager",datos_lim[,1]) & datos_lim[,1]!="
 ggplot(datos_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
 ```
 
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 Even after removing those games, there are still plenty of games biased
 to the 100% completion rate. Now we can see othe sport games, such as
@@ -134,7 +156,7 @@ datos_lim<-datos_lim[datos_lim$V3<=5,]
 ggplot(datos_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
 ```
 
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 This representation is not the best option for lloking at the data,
 let’s represent it as barplots
@@ -145,7 +167,7 @@ datos_lim<-datos_lim[datos_lim$V3<=1,]
 ggplot(datos_lim, aes(V3,V4,label=V1)) + geom_jitter(position = position_jitter(seed = 1)) + geom_text(position = position_jitter(seed = 1)) + theme_bw()
 ```
 
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 This way you can take a closer look at games that will only take an hour
 to finish, most of them Arcade games, but will take up to 80 hours to
 finish completely, in the case of King of Fighters ’98 Ultimate Match

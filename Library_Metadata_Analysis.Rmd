@@ -57,7 +57,30 @@ datos_lim<-datos_lim[datos_lim[,4]>0,]
 ggplot(datos_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
 ```
 
-A lot of sport sim games and aura kingdom are the games that show the most biased distribution when comparing both parameters, based in farming and repetition. Aura Kingdom is a MMO, so is easy to think on it as farming realted achivements.
+A lot of sport simulation games, concretely Football Manager games, and Aura Kingdom are the games that show the most biased distribution when comparing both parameters, based in farming and repetition. Football Manager games surround 1000h of game play to complete it at a 100%, while Aura Kingdom, a MMO, is up to 9000h to finish it. It is easy to think on these as farming related achievements that will take an insane amount of time.
+
+But we can see much using this kind of approach, so we better create a index to save the games that are more biased according to the difference beeteen finished and 100% games
+
+```{r}
+datos_lim$time_index<-datos_lim$V4/datos_lim$V3
+
+datos_lim <- datos_lim[order(as.factor(datos_lim$time_index),decreasing = T),]
+datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
+
+#time_rel<-datos_lim[order(datos_lim$time_index,decreasing=TRUE),]
+
+#ggplot(time_rel[1:5,],aes(V1,time_index)) + geom_bar()
+
+ggplot(datos_lim[1:30,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
+
+```
+
+
+
+
+
+
+
 
 If we remove these games we could focus on the next most biased games
 

@@ -96,7 +96,7 @@ as.character(na.omit(datos_lim[datos_lim$time_index==1,1])[1:30])
 We can order this information by user positive rating
 
 ```{r}
-datos_lim <- datos_lim[datos_lim[,12]>0,]
+datos_lim <- datos_lim[(datos_lim[,12]+datos_lim[,13])>=100,]
 datos_lim <- datos_lim[order(as.factor(round((datos_lim[,12]/(datos_lim[,12]+datos_lim[,13]))*100,digits=1)),decreasing = T),]
 datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
 

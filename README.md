@@ -187,7 +187,7 @@ as.character(na.omit(datos_lim[datos_lim$time_index==1,1])[1:30])
 We can order this information by user positive rating
 
 ``` r
-datos_lim <- datos_lim[datos_lim[,12]>0,]
+datos_lim <- datos_lim[(datos_lim[,12]+datos_lim[,13])>=100,]
 datos_lim <- datos_lim[order(as.factor(round((datos_lim[,12]/(datos_lim[,12]+datos_lim[,13]))*100,digits=1)),decreasing = T),]
 datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
 
@@ -200,36 +200,36 @@ datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
 paste(as.character(na.omit(datos_lim[datos_lim$time_index==1,1])[1:30]),as.factor(round((datos_lim[,12]/(datos_lim[,12]+datos_lim[,13]))*100,digits=1)[1:30]))
 ```
 
-    ##  [1] "The Room 4: Old Sins 100"                                       
-    ##  [2] "The Room Two 100"                                               
-    ##  [3] "The Room 98.8"                                                  
-    ##  [4] "Zup! F 98.8"                                                    
-    ##  [5] "The Expendabros 98.8"                                           
-    ##  [6] "To the Moon 98.6"                                               
-    ##  [7] "Zup! 9 98.5"                                                    
-    ##  [8] "Rusty Lake Hotel 98.2"                                          
-    ##  [9] "Zup! 7 98.1"                                                    
-    ## [10] "Zup! 2 98"                                                      
-    ## [11] "qop 2 98"                                                       
-    ## [12] "Tales from the Borderlands 97.9"                                
-    ## [13] "Oddworld: Abe's Exoddus 97.9"                                   
-    ## [14] "Zup! Zero 2 97.8"                                               
-    ## [15] "Zup! 6 97.8"                                                    
-    ## [16] "Thomas Was Alone 97.8"                                          
-    ## [17] "Zup! 5 97.8"                                                    
-    ## [18] "The Office Quest 97.7"                                          
-    ## [19] "Zup! Zero 97.7"                                                 
-    ## [20] "Sam & Max 305: The City that Dares not Sleep 97.7"              
-    ## [21] "The Awesome Adventures of Captain Spirit 97.7"                  
-    ## [22] "Kathy Rain 97.6"                                                
-    ## [23] "Oknytt 97.6"                                                    
-    ## [24] "Press Any Button 97.6"                                          
-    ## [25] "Resident Evil 2 \\1-Shot Demo\\ 97.6"                           
-    ## [26] "Tales of Monkey Island: Chapter 3 - Lair of the Leviathan  97.5"
-    ## [27] "qop 97.5"                                                       
-    ## [28] "Hector: Ep 3 97.5"                                              
-    ## [29] "Lines Infinite 97.5"                                            
-    ## [30] "Dreaming Sarah 97.5"
+    ##  [1] "The Room 4: Old Sins 98.8"                    
+    ##  [2] "The Room Two 98.8"                            
+    ##  [3] "The Room 98.8"                                
+    ##  [4] "Zup! F 98.6"                                  
+    ##  [5] "The Expendabros 98.5"                         
+    ##  [6] "To the Moon 98.2"                             
+    ##  [7] "Zup! 9 98.1"                                  
+    ##  [8] "Rusty Lake Hotel 98"                          
+    ##  [9] "Zup! 7 98"                                    
+    ## [10] "Zup! 2 97.9"                                  
+    ## [11] "qop 2 97.9"                                   
+    ## [12] "Tales from the Borderlands 97.8"              
+    ## [13] "Oddworld: Abe's Exoddus 97.8"                 
+    ## [14] "Zup! Zero 2 97.8"                             
+    ## [15] "Zup! 6 97.8"                                  
+    ## [16] "Thomas Was Alone 97.7"                        
+    ## [17] "Zup! 5 97.7"                                  
+    ## [18] "The Office Quest 97.7"                        
+    ## [19] "Zup! Zero 97.7"                               
+    ## [20] "The Awesome Adventures of Captain Spirit 97.6"
+    ## [21] "Kathy Rain 97.6"                              
+    ## [22] "Oknytt 97.6"                                  
+    ## [23] "Press Any Button 97.6"                        
+    ## [24] "Resident Evil 2 \\1-Shot Demo\\ 97.5"         
+    ## [25] "qop 97.5"                                     
+    ## [26] "Hector: Ep 3 97.5"                            
+    ## [27] "Lines Infinite 97.5"                          
+    ## [28] "Dreaming Sarah 97.5"                          
+    ## [29] "Sam & Max 102: Situation: Comedy 97.5"        
+    ## [30] "Big Dipper 97.5"
 
 These are the best rated game to entirele complete in a single run
 

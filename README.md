@@ -126,10 +126,112 @@ datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
 
 #ggplot(time_rel[1:5,],aes(V1,time_index)) + geom_bar()
 
-ggplot(datos_lim[1:30,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
+ggplot(datos_lim[1:20,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
 ```
 
 ![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+The same way, we can take a look to the fastest game to complete,
+looking at game with the lowest index
+
+``` r
+datos_lim <- datos_lim[order(as.factor(datos_lim$time_index),decreasing = F),]
+datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
+
+#time_rel<-datos_lim[order(datos_lim$time_index,decreasing=TRUE),]
+
+#ggplot(time_rel[1:5,],aes(V1,time_index)) + geom_bar()
+
+#ggplot(datos_lim[1:30,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
+
+paste("Number of games that can be 100% achieved by finishing it:",length(na.omit(datos_lim[datos_lim$time_index==1,1])))
+```
+
+    ## [1] "Number of games that can be 100% achieved by finishing it: 134"
+
+``` r
+as.character(na.omit(datos_lim[datos_lim$time_index==1,1])[1:30])
+```
+
+    ##  [1] "Broken Sword 3 - the Sleeping Dragon"        
+    ##  [2] "The Room 4: Old Sins"                        
+    ##  [3] "Albedo: Eyes from Outer Space"               
+    ##  [4] "Belladonna"                                  
+    ##  [5] "Spoiler Alert"                               
+    ##  [6] "qop 2"                                       
+    ##  [7] "Sakura Magical Girls"                        
+    ##  [8] "Mystery Masters: Psycho Train Deluxe Edition"
+    ##  [9] "Sakura Beach"                                
+    ## [10] "Survival Zombies The Inverted Evolution"     
+    ## [11] "Cyber City 2157: The Visual Novel"           
+    ## [12] "Zup! 6"                                      
+    ## [13] "The Room"                                    
+    ## [14] "Castle of no Escape"                         
+    ## [15] "DarkBase 01"                                 
+    ## [16] "Sweet fantasy"                               
+    ## [17] "Calcu-Late"                                  
+    ## [18] "Machine Hunt"                                
+    ## [19] "Unhack"                                      
+    ## [20] "Zup! 7"                                      
+    ## [21] "Broken Dreams"                               
+    ## [22] "The Vanishing of Ethan Carter"               
+    ## [23] "To the Moon"                                 
+    ## [24] "Apartment 666"                               
+    ## [25] "The Room Two"                                
+    ## [26] "Oknytt"                                      
+    ## [27] "The Norwood Suite"                           
+    ## [28] "Kathy Rain"                                  
+    ## [29] "Insincere"                                   
+    ## [30] "qop"
+
+We can order this information by user positive rating
+
+``` r
+datos_lim <- datos_lim[datos_lim[,12]>0,]
+datos_lim <- datos_lim[order(as.factor(round((datos_lim[,12]/(datos_lim[,12]+datos_lim[,13]))*100,digits=1)),decreasing = T),]
+datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
+
+#time_rel<-datos_lim[order(datos_lim$time_index,decreasing=TRUE),]
+
+#ggplot(time_rel[1:5,],aes(V1,time_index)) + geom_bar()
+
+#ggplot(datos_lim[1:30,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
+
+paste(as.character(na.omit(datos_lim[datos_lim$time_index==1,1])[1:30]),as.factor(round((datos_lim[,12]/(datos_lim[,12]+datos_lim[,13]))*100,digits=1)[1:30]))
+```
+
+    ##  [1] "The Room 4: Old Sins 100"                                       
+    ##  [2] "The Room Two 100"                                               
+    ##  [3] "The Room 98.8"                                                  
+    ##  [4] "Zup! F 98.8"                                                    
+    ##  [5] "The Expendabros 98.8"                                           
+    ##  [6] "To the Moon 98.6"                                               
+    ##  [7] "Zup! 9 98.5"                                                    
+    ##  [8] "Rusty Lake Hotel 98.2"                                          
+    ##  [9] "Zup! 7 98.1"                                                    
+    ## [10] "Zup! 2 98"                                                      
+    ## [11] "qop 2 98"                                                       
+    ## [12] "Tales from the Borderlands 97.9"                                
+    ## [13] "Oddworld: Abe's Exoddus 97.9"                                   
+    ## [14] "Zup! Zero 2 97.8"                                               
+    ## [15] "Zup! 6 97.8"                                                    
+    ## [16] "Thomas Was Alone 97.8"                                          
+    ## [17] "Zup! 5 97.8"                                                    
+    ## [18] "The Office Quest 97.7"                                          
+    ## [19] "Zup! Zero 97.7"                                                 
+    ## [20] "Sam & Max 305: The City that Dares not Sleep 97.7"              
+    ## [21] "The Awesome Adventures of Captain Spirit 97.7"                  
+    ## [22] "Kathy Rain 97.6"                                                
+    ## [23] "Oknytt 97.6"                                                    
+    ## [24] "Press Any Button 97.6"                                          
+    ## [25] "Resident Evil 2 \\1-Shot Demo\\ 97.6"                           
+    ## [26] "Tales of Monkey Island: Chapter 3 - Lair of the Leviathan  97.5"
+    ## [27] "qop 97.5"                                                       
+    ## [28] "Hector: Ep 3 97.5"                                              
+    ## [29] "Lines Infinite 97.5"                                            
+    ## [30] "Dreaming Sarah 97.5"
+
+These are the best rated game to entirele complete in a single run
 
 If we remove these games we could focus on the next most biased games
 
@@ -139,7 +241,7 @@ datos_lim<-datos_lim[!grepl("Football Manager",datos_lim[,1]) & datos_lim[,1]!="
 ggplot(datos_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
 ```
 
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 Even after removing those games, there are still plenty of games biased
 to the 100% completion rate. Now we can see othe sport games, such as
@@ -156,7 +258,7 @@ datos_lim<-datos_lim[datos_lim$V3<=5,]
 ggplot(datos_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
 ```
 
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
 This representation is not the best option for lloking at the data,
 let’s represent it as barplots
@@ -167,7 +269,7 @@ datos_lim<-datos_lim[datos_lim$V3<=1,]
 ggplot(datos_lim, aes(V3,V4,label=V1)) + geom_jitter(position = position_jitter(seed = 1)) + geom_text(position = position_jitter(seed = 1)) + theme_bw()
 ```
 
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
 This way you can take a closer look at games that will only take an hour
 to finish, most of them Arcade games, but will take up to 80 hours to
 finish completely, in the case of King of Fighters ’98 Ultimate Match

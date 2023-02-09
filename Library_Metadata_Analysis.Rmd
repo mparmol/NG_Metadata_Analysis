@@ -71,9 +71,46 @@ datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
 
 #ggplot(time_rel[1:5,],aes(V1,time_index)) + geom_bar()
 
-ggplot(datos_lim[1:30,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
+ggplot(datos_lim[1:20,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
 
 ```
+
+The same way, we can take a look to the fastest game to complete, looking at game with the lowest index
+
+```{r}
+datos_lim <- datos_lim[order(as.factor(datos_lim$time_index),decreasing = F),]
+datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
+
+#time_rel<-datos_lim[order(datos_lim$time_index,decreasing=TRUE),]
+
+#ggplot(time_rel[1:5,],aes(V1,time_index)) + geom_bar()
+
+#ggplot(datos_lim[1:30,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
+
+paste("Number of games that can be 100% achieved by finishing it:",length(na.omit(datos_lim[datos_lim$time_index==1,1])))
+
+as.character(na.omit(datos_lim[datos_lim$time_index==1,1])[1:30])
+
+```
+
+We can order this information by user positive rating
+
+```{r}
+datos_lim <- datos_lim[datos_lim[,12]>0,]
+datos_lim <- datos_lim[order(as.factor(round((datos_lim[,12]/(datos_lim[,12]+datos_lim[,13]))*100,digits=1)),decreasing = T),]
+datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
+
+#time_rel<-datos_lim[order(datos_lim$time_index,decreasing=TRUE),]
+
+#ggplot(time_rel[1:5,],aes(V1,time_index)) + geom_bar()
+
+#ggplot(datos_lim[1:30,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
+
+paste(as.character(na.omit(datos_lim[datos_lim$time_index==1,1])[1:30]),as.factor(round((datos_lim[,12]/(datos_lim[,12]+datos_lim[,13]))*100,digits=1)[1:30]))
+
+```
+
+These are the best rated game to entirele complete in a single run
 
 
 

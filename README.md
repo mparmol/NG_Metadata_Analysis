@@ -191,45 +191,111 @@ datos_lim <- datos_lim[(datos_lim[,12]+datos_lim[,13])>=100,]
 datos_lim <- datos_lim[order(as.factor(round((datos_lim[,12]/(datos_lim[,12]+datos_lim[,13]))*100,digits=1)),decreasing = T),]
 datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
 
+datos_lim$rating <- as.factor(round((datos_lim[,12]/(datos_lim[,12]+datos_lim[,13]))*100,digits=1))
 #time_rel<-datos_lim[order(datos_lim$time_index,decreasing=TRUE),]
 
 #ggplot(time_rel[1:5,],aes(V1,time_index)) + geom_bar()
 
 #ggplot(datos_lim[1:30,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
 
-paste(as.character(na.omit(datos_lim[datos_lim$time_index==1,1])[1:30]),as.factor(round((datos_lim[,12]/(datos_lim[,12]+datos_lim[,13]))*100,digits=1)[1:30]))
+out<-datos_lim[datos_lim$time_index==1,][1:30,c(1,3,4,11,14,19,26)]
+colnames(out)<-c("Name","Time to finish","Time to 100% complete","Genre","Developer","Release date","Positive rating")
+out
 ```
 
-    ##  [1] "The Room 4: Old Sins 98.8"                    
-    ##  [2] "The Room Two 98.8"                            
-    ##  [3] "The Room 98.8"                                
-    ##  [4] "Zup! F 98.6"                                  
-    ##  [5] "The Expendabros 98.5"                         
-    ##  [6] "To the Moon 98.2"                             
-    ##  [7] "Zup! 9 98.1"                                  
-    ##  [8] "Rusty Lake Hotel 98"                          
-    ##  [9] "Zup! 7 98"                                    
-    ## [10] "Zup! 2 97.9"                                  
-    ## [11] "qop 2 97.9"                                   
-    ## [12] "Tales from the Borderlands 97.8"              
-    ## [13] "Oddworld: Abe's Exoddus 97.8"                 
-    ## [14] "Zup! Zero 2 97.8"                             
-    ## [15] "Zup! 6 97.8"                                  
-    ## [16] "Thomas Was Alone 97.7"                        
-    ## [17] "Zup! 5 97.7"                                  
-    ## [18] "The Office Quest 97.7"                        
-    ## [19] "Zup! Zero 97.7"                               
-    ## [20] "The Awesome Adventures of Captain Spirit 97.6"
-    ## [21] "Kathy Rain 97.6"                              
-    ## [22] "Oknytt 97.6"                                  
-    ## [23] "Press Any Button 97.6"                        
-    ## [24] "Resident Evil 2 \\1-Shot Demo\\ 97.5"         
-    ## [25] "qop 97.5"                                     
-    ## [26] "Hector: Ep 3 97.5"                            
-    ## [27] "Lines Infinite 97.5"                          
-    ## [28] "Dreaming Sarah 97.5"                          
-    ## [29] "Sam & Max 102: Situation: Comedy 97.5"        
-    ## [30] "Big Dipper 97.5"
+    ##                                          Name Time to finish
+    ## 157                      The Room 4: Old Sins              4
+    ## 789                              The Room Two              3
+    ## 447                                  The Room              3
+    ## 1161                                   Zup! F              1
+    ## 1230                          The Expendabros              1
+    ## 718                               To the Moon              4
+    ## 1227                                   Zup! 9              1
+    ## 2634                         Rusty Lake Hotel              2
+    ## 648                                    Zup! 7              1
+    ## 879                                    Zup! 2              1
+    ## 342                                     qop 2              1
+    ## 2832               Tales from the Borderlands             11
+    ## 2400                  Oddworld: Abe's Exoddus             15
+    ## 3150                              Zup! Zero 2              1
+    ## 435                                    Zup! 6              1
+    ## 2946                         Thomas Was Alone              4
+    ## 958                                    Zup! 5              1
+    ## 2907                         The Office Quest              4
+    ## 1180                                Zup! Zero              1
+    ## 2863 The Awesome Adventures of Captain Spirit              2
+    ## 825                                Kathy Rain              6
+    ## 799                                    Oknytt              5
+    ## 2485                         Press Any Button              1
+    ## 1235          Resident Evil 2 \\1-Shot Demo\\              1
+    ## 830                                       qop              1
+    ## 2068                             Hector: Ep 3              3
+    ## 2218                           Lines Infinite              3
+    ## 839                            Dreaming Sarah              2
+    ## 2645         Sam & Max 102: Situation: Comedy              2
+    ## 1573                               Big Dipper              2
+    ##      Time to 100% complete                                  Genre
+    ## 157                      4                              Adventure
+    ## 789                      3                       Adventure, Indie
+    ## 447                      3                       Adventure, Indie
+    ## 1161                     1                          Casual, Indie
+    ## 1230                     1 Action, Adventure, Free to Play, Indie
+    ## 718                      4                  Adventure, Indie, RPG
+    ## 1227                     1                          Casual, Indie
+    ## 2634                     2                       Adventure, Indie
+    ## 648                      1                          Casual, Indie
+    ## 879                      1                          Casual, Indie
+    ## 342                      1                          Casual, Indie
+    ## 2832                    11                              Adventure
+    ## 2400                    15                              Adventure
+    ## 3150                     1                          Casual, Indie
+    ## 435                      1                          Casual, Indie
+    ## 2946                     4                                  Indie
+    ## 958                      1                          Casual, Indie
+    ## 2907                     4                       Adventure, Indie
+    ## 1180                     1                          Casual, Indie
+    ## 2863                     2                Adventure, Free to Play
+    ## 825                      6                       Adventure, Indie
+    ## 799                      5                       Adventure, Indie
+    ## 2485                     1                          Casual, Indie
+    ## 1235                     1                                 Action
+    ## 830                      1                          Casual, Indie
+    ## 2068                     3                      Adventure, Casual
+    ## 2218                     3                Casual, Indie, Strategy
+    ## 839                      2               Adventure, Casual, Indie
+    ## 2645                     2                      Action, Adventure
+    ## 1573                     2                      Indie, Simulation
+    ##                                   Developer Release date Positive rating
+    ## 157                         Fireproof Games  11-Feb-2021            98.8
+    ## 789                         Fireproof Games  05-Jul-2016            97.8
+    ## 447                         Fireproof Games  28-Jul-2014            97.7
+    ## 1161                            Quiet River  11-Dec-2019            97.3
+    ## 1230                             Free Lives  05-Aug-2014            97.2
+    ## 718                          Freebird Games  07-Sep-2012            96.4
+    ## 1227                            Quiet River  24-Jun-2019            95.8
+    ## 2634                             Rusty Lake  29-Jan-2016            95.8
+    ## 648                             Quiet River  12-Dec-2017            95.6
+    ## 879                             Quiet River  05-Dec-2016            95.6
+    ## 342                             Quiet River  12-Dec-2017            95.3
+    ## 2832                         Telltale Games  16-Feb-2021            95.2
+    ## 2400                   Oddworld Inhabitants  28-Aug-2008              95
+    ## 3150                            Quiet River  11-Sep-2018            94.8
+    ## 435                             Quiet River  19-Sep-2017            94.5
+    ## 2946                          Bithell Games  12-Nov-2012            93.9
+    ## 958                             Quiet River  13-Jun-2017            93.8
+    ## 2907                                11Sheep  24-May-2018            93.7
+    ## 1180                            Quiet River  06-Apr-2017            93.6
+    ## 2863                  DONTNOD Entertainment  25-Jun-2018            92.7
+    ## 825                          Clifftop Games  05-May-2016            92.6
+    ## 799                   Nemoria Entertainment  04-Apr-2014            92.3
+    ## 2485                           Eugene Zubko  07-Jan-2021            92.3
+    ## 1235                       CAPCOM Co., Ltd.         <NA>            92.1
+    ## 830                             Quiet River  13-Jul-2017            91.6
+    ## 2068                               Telltale  27-Apr-2011            91.3
+    ## 2218                           Konstructors  24-Nov-2017            91.3
+    ## 839  Asteristic Game Studio, Anthony Septim  12-Mar-2015            91.1
+    ## 2645                         Telltale Games  15-Jun-2007            91.1
+    ## 1573                             Team Zimno  07-Jan-2019            90.8
 
 These are the best rated game to entirele complete in a single run
 

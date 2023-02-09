@@ -107,8 +107,8 @@ datos_lim$rating <- as.factor(round((datos_lim[,12]/(datos_lim[,12]+datos_lim[,1
 
 #ggplot(datos_lim[1:30,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
 
-out<-datos_lim[datos_lim$time_index==1,][1:30,c(1,3,4,11,14,19,26)]
-colnames(out)<-c("Name","Time to finish","Time to 100% complete","Genre","Developer","Release date","Positive rating")
+out<-datos_lim[datos_lim$time_index==1,][1:30,c(1,11,14,19,26)]
+colnames(out)<-c("Name","Genre","Developer","Release date","Positive rating")
 out
 ```
 

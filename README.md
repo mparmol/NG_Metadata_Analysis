@@ -198,73 +198,73 @@ datos_lim$rating <- as.factor(round((datos_lim[,12]/(datos_lim[,12]+datos_lim[,1
 
 #ggplot(datos_lim[1:30,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
 
-out<-datos_lim[datos_lim$time_index==1,][1:30,c(1,3,4,11,14,19,26)]
-colnames(out)<-c("Name","Time to finish","Time to 100% complete","Genre","Developer","Release date","Positive rating")
+out<-datos_lim[datos_lim$time_index==1,][1:30,c(1,11,14,19,26)]
+colnames(out)<-c("Name","Genre","Developer","Release date","Positive rating")
 out
 ```
 
-    ##                                          Name Time to finish
-    ## 157                      The Room 4: Old Sins              4
-    ## 789                              The Room Two              3
-    ## 447                                  The Room              3
-    ## 1161                                   Zup! F              1
-    ## 1230                          The Expendabros              1
-    ## 718                               To the Moon              4
-    ## 1227                                   Zup! 9              1
-    ## 2634                         Rusty Lake Hotel              2
-    ## 648                                    Zup! 7              1
-    ## 879                                    Zup! 2              1
-    ## 342                                     qop 2              1
-    ## 2832               Tales from the Borderlands             11
-    ## 2400                  Oddworld: Abe's Exoddus             15
-    ## 3150                              Zup! Zero 2              1
-    ## 435                                    Zup! 6              1
-    ## 2946                         Thomas Was Alone              4
-    ## 958                                    Zup! 5              1
-    ## 2907                         The Office Quest              4
-    ## 1180                                Zup! Zero              1
-    ## 2863 The Awesome Adventures of Captain Spirit              2
-    ## 825                                Kathy Rain              6
-    ## 799                                    Oknytt              5
-    ## 2485                         Press Any Button              1
-    ## 1235          Resident Evil 2 \\1-Shot Demo\\              1
-    ## 830                                       qop              1
-    ## 2068                             Hector: Ep 3              3
-    ## 2218                           Lines Infinite              3
-    ## 839                            Dreaming Sarah              2
-    ## 2645         Sam & Max 102: Situation: Comedy              2
-    ## 1573                               Big Dipper              2
-    ##      Time to 100% complete                                  Genre
-    ## 157                      4                              Adventure
-    ## 789                      3                       Adventure, Indie
-    ## 447                      3                       Adventure, Indie
-    ## 1161                     1                          Casual, Indie
-    ## 1230                     1 Action, Adventure, Free to Play, Indie
-    ## 718                      4                  Adventure, Indie, RPG
-    ## 1227                     1                          Casual, Indie
-    ## 2634                     2                       Adventure, Indie
-    ## 648                      1                          Casual, Indie
-    ## 879                      1                          Casual, Indie
-    ## 342                      1                          Casual, Indie
-    ## 2832                    11                              Adventure
-    ## 2400                    15                              Adventure
-    ## 3150                     1                          Casual, Indie
-    ## 435                      1                          Casual, Indie
-    ## 2946                     4                                  Indie
-    ## 958                      1                          Casual, Indie
-    ## 2907                     4                       Adventure, Indie
-    ## 1180                     1                          Casual, Indie
-    ## 2863                     2                Adventure, Free to Play
-    ## 825                      6                       Adventure, Indie
-    ## 799                      5                       Adventure, Indie
-    ## 2485                     1                          Casual, Indie
-    ## 1235                     1                                 Action
-    ## 830                      1                          Casual, Indie
-    ## 2068                     3                      Adventure, Casual
-    ## 2218                     3                Casual, Indie, Strategy
-    ## 839                      2               Adventure, Casual, Indie
-    ## 2645                     2                      Action, Adventure
-    ## 1573                     2                      Indie, Simulation
+    ##                                          Name
+    ## 157                      The Room 4: Old Sins
+    ## 789                              The Room Two
+    ## 447                                  The Room
+    ## 1161                                   Zup! F
+    ## 1230                          The Expendabros
+    ## 718                               To the Moon
+    ## 1227                                   Zup! 9
+    ## 2634                         Rusty Lake Hotel
+    ## 648                                    Zup! 7
+    ## 879                                    Zup! 2
+    ## 342                                     qop 2
+    ## 2832               Tales from the Borderlands
+    ## 2400                  Oddworld: Abe's Exoddus
+    ## 3150                              Zup! Zero 2
+    ## 435                                    Zup! 6
+    ## 2946                         Thomas Was Alone
+    ## 958                                    Zup! 5
+    ## 2907                         The Office Quest
+    ## 1180                                Zup! Zero
+    ## 2863 The Awesome Adventures of Captain Spirit
+    ## 825                                Kathy Rain
+    ## 799                                    Oknytt
+    ## 2485                         Press Any Button
+    ## 1235          Resident Evil 2 \\1-Shot Demo\\
+    ## 830                                       qop
+    ## 2068                             Hector: Ep 3
+    ## 2218                           Lines Infinite
+    ## 839                            Dreaming Sarah
+    ## 2645         Sam & Max 102: Situation: Comedy
+    ## 1573                               Big Dipper
+    ##                                       Genre
+    ## 157                               Adventure
+    ## 789                        Adventure, Indie
+    ## 447                        Adventure, Indie
+    ## 1161                          Casual, Indie
+    ## 1230 Action, Adventure, Free to Play, Indie
+    ## 718                   Adventure, Indie, RPG
+    ## 1227                          Casual, Indie
+    ## 2634                       Adventure, Indie
+    ## 648                           Casual, Indie
+    ## 879                           Casual, Indie
+    ## 342                           Casual, Indie
+    ## 2832                              Adventure
+    ## 2400                              Adventure
+    ## 3150                          Casual, Indie
+    ## 435                           Casual, Indie
+    ## 2946                                  Indie
+    ## 958                           Casual, Indie
+    ## 2907                       Adventure, Indie
+    ## 1180                          Casual, Indie
+    ## 2863                Adventure, Free to Play
+    ## 825                        Adventure, Indie
+    ## 799                        Adventure, Indie
+    ## 2485                          Casual, Indie
+    ## 1235                                 Action
+    ## 830                           Casual, Indie
+    ## 2068                      Adventure, Casual
+    ## 2218                Casual, Indie, Strategy
+    ## 839                Adventure, Casual, Indie
+    ## 2645                      Action, Adventure
+    ## 1573                      Indie, Simulation
     ##                                   Developer Release date Positive rating
     ## 157                         Fireproof Games  11-Feb-2021            98.8
     ## 789                         Fireproof Games  05-Jul-2016            97.8

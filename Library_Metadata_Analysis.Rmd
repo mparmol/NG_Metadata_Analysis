@@ -2,14 +2,54 @@
 output: rmarkdown::github_document
 ---
 
+# **NextGame project - Metadata Analysis** ![Stars](https://img.shields.io/github/stars/mparmol/NG_Steam_Library_Metadata)
+
 ```{r loadpackages, include=FALSE}
 library(ggplot2)
 
 #Here you can load your dataset
 
-datos<-read.delim("Steam_Metadata_Full_marko_pakete.txt",header = F)
+Input_file<-"Steam_Metadata_Full_marko_pakete.txt"
+
+datos<-read.delim(Input_file,header = F)
 
 ```
+
+## `r strsplit(strsplit(Input_file,"Full_")[[1]][2],"\\.")[[1]][1]` Steam Library data
+
+· Number of listed Apps 
+
+```{r}
+dim(datos)[1]
+```
+· Total time to finish library
+
+```{r}
+paste(sum(as.numeric(datos[datos[,3]!="No time registered yet" & !is.na(datos[,3]),3])),"h")
+paste(round(sum(as.numeric(datos[datos[,3]!="No time registered yet" & !is.na(datos[,3]),3]))/24/30/12,digits = 2),"years")
+```
+
+· Average time to finish a game
+
+```{r}
+paste(round(mean(as.numeric(datos[datos[,3]!="No time registered yet" & !is.na(datos[,3]),3])),digits = 2),"h")
+
+ggplot(datos[datos[,3]!="No time registered yet" & !is.na(datos[,3]) & datos[,3]>0,], aes(x=factor(V3, level=seq(min(as.numeric(datos[datos[,3]!="No time registered yet" & !is.na(datos[,3]),3])),max(as.numeric(datos[datos[,3]!="No time registered yet" & !is.na(datos[,3]),3])),1)))) + geom_histogram(stat = "count") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1)) + ylab("Games count") + xlab("Time to finish")
+
+```
+· Average time to 100% complete a game
+
+```{r}
+paste(round(mean(as.numeric(datos[datos[,4]!="No time registered yet" & !is.na(datos[,4]),4])),digits = 2),"h")
+```
+
+· Total time to 100% complete library
+
+```{r}
+paste(sum(as.numeric(datos[datos[,4]!="No time registered yet" & !is.na(datos[,4]),4])),"h")
+paste(round(sum(as.numeric(datos[datos[,4]!="No time registered yet" & !is.na(datos[,4]),4]))/24/30/12,digits = 2),"years")
+```
+
 
 ## HowLongToBeat method accuracy 
 
@@ -114,10 +154,59 @@ out
 
 These are the best rated game to entirele complete in a single run
 
+## Genre analysis
 
+First we need to split de Genre column to create an abscence/presence table. The same for Tags
 
+```{r}
+#Genre
 
+datos$V11<-gsub(", ",",",datos$V11)
 
+genre_df<-data.frame(matrix(nrow = dim(datos)[1]))
+genre_df[,1]<-datos$V1
+
+genre_split <- strsplit(datos$V11, ",")
+
+genre_split_c <- unique(unlist(genre_split))
+
+for (genre_split_cs in genre_split_c) {
+  genre_df[genre_split_cs] <- sapply(genre_split, function(x) genre_split_cs %in% x)
+}
+
+genre_df$total <- rowSums(genre_df[genre_split_c])
+
+#Tags
+
+datos$V16<-gsub(", ",",",datos$V16)
+
+tags_df<-data.frame(matrix(nrow = dim(datos)[1]))
+tags_df[,1]<-datos$V1
+
+tags_split <- strsplit(datos$V16, ",")
+
+tags_split_c <- na.omit(unique(unlist(tags_split)))
+
+for (tags_split_cs in tags_split_c) {
+  tags_df[tags_split_cs] <- sapply(tags_split, function(x) tags_split_cs %in% x)
+}
+
+tags_df$total <- rowSums(tags_df[tags_split_c])
+
+```
+
+Now we can explore the data and plot de proportion of each genre
+
+```{r}
+ggplot(genre_df, aes(x = "", y = total, fill = factor(total))) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start = 0) +
+  scale_fill_discrete(name = "Presencia de campos") +
+  ggtitle("Gráfico de pastel de presencia de campos") +
+  xlab("") +
+  ylab("Presencia de campos") +
+  theme_void()
+```
 
 
 

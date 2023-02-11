@@ -37,8 +37,7 @@ paste(round(mean(as.numeric(datos[datos[,3]!="No time registered yet" & !is.na(d
 ggplot(datos[datos[,3]!="No time registered yet" & !is.na(datos[,3]) & datos[,3]>0,], aes(x=factor(V3, level=seq(min(as.numeric(datos[datos[,3]!="No time registered yet" & !is.na(datos[,3]),3])),max(as.numeric(datos[datos[,3]!="No time registered yet" & !is.na(datos[,3]),3])),1)))) + geom_histogram(stat = "count") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1)) + ylab("Games count") + xlab("Time to finish")
 ```
 
-    ## Warning in geom_histogram(stat = "count"): Ignoring unknown parameters:
-    ## `binwidth`, `bins`, and `pad`
+    ## Warning: Ignoring unknown parameters: binwidth, bins, pad
 
 ![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 · Average time to 100% complete a game
@@ -363,6 +362,85 @@ out
 
 These are the best rated game to entirele complete in a single run
 
+We can use this method to focus in the next game to play according to
+this criteria, just but filtering out the games already completed at
+100%.
+
+``` r
+out<-datos_lim[datos_lim$time_index==1,][1:30,c(1,11,14,19,26)] ############### CUANDO SE GENERE BIEN LA TABLA!!!
+```
+
+## Genre analysis
+
+First we need to split de Genre column to create an abscence/presence
+table. The same for Tags
+
+``` r
+#Genre
+
+datos$V11<-gsub(", ",",",datos$V11)
+
+genre_df<-data.frame(matrix(nrow = dim(datos)[1]))
+genre_df[,1]<-datos$V1
+
+genre_split <- strsplit(datos$V11, ",")
+
+genre_split_c <- unique(unlist(genre_split))
+
+for (genre_split_cs in genre_split_c) {
+  genre_df[genre_split_cs] <- sapply(genre_split, function(x) genre_split_cs %in% x)
+}
+
+#genre_df$total <- rowSums(genre_df[genre_split_c])
+
+#Tags
+
+datos$V16<-gsub(", ",",",datos$V16)
+
+tags_df<-data.frame(matrix(nrow = dim(datos)[1]))
+tags_df[,1]<-datos$V1
+
+tags_split <- strsplit(datos$V16, ",")
+
+tags_split_c <- na.omit(unique(unlist(tags_split)))
+
+for (tags_split_cs in tags_split_c) {
+  tags_df[tags_split_cs] <- sapply(tags_split, function(x) tags_split_cs %in% x)
+}
+
+#tags_df$total <- rowSums(tags_df[tags_split_c])
+```
+
+Now we can explore the data and plot de proportion of each genre
+(filteres only showing the most abundant combinations of genre)
+
+``` r
+genre_df[genre_df=="FALSE"]<-0
+upset(genre_df, sets = genre_split_c, nsets = length(genre_split_c), mb.ratio = c(0.5,0.5), order.by = "freq", mainbar.y.label = "Número de filas")
+```
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+And we can do the same for the tags in the games. There are many tags,
+we will only focus on the most abundant by filtering out the lest
+representative
+
+``` r
+tags_df[tags_df=="FALSE"]<-0
+tags_df[dim(tags_df)[1]+1,tags_split_c] <- colSums(tags_df[tags_split_c])
+
+tags_sample<-tags_df[,2:dim(tags_df)[2]]
+
+tags_sample<-tags_sample[,(as.numeric(tags_df[dim(tags_df)[1],tags_split_c])>(0.15*max(tags_df[dim(tags_df)[1],tags_split_c])))]
+tags_sample<-cbind(tags_df[,1],tags_sample)
+tags_sample<-tags_sample[-dim(tags_sample)[1],]
+
+tags_split_c <- colnames(tags_sample)[2:dim(tags_sample)[2]]
+
+upset(tags_sample, sets = tags_split_c, nsets = length(tags_split_c), mb.ratio = c(0.5,0.5), order.by = "freq", mainbar.y.label = "Número de filas")
+```
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+
 If we remove these games we could focus on the next most biased games
 
 ``` r
@@ -371,7 +449,7 @@ datos_lim<-datos_lim[!grepl("Football Manager",datos_lim[,1]) & datos_lim[,1]!="
 ggplot(datos_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
 ```
 
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
 Even after removing those games, there are still plenty of games biased
 to the 100% completion rate. Now we can see othe sport games, such as
@@ -388,7 +466,7 @@ datos_lim<-datos_lim[datos_lim$V3<=5,]
 ggplot(datos_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
 ```
 
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
 
 This representation is not the best option for lloking at the data,
 let’s represent it as barplots
@@ -399,7 +477,7 @@ datos_lim<-datos_lim[datos_lim$V3<=1,]
 ggplot(datos_lim, aes(V3,V4,label=V1)) + geom_jitter(position = position_jitter(seed = 1)) + geom_text(position = position_jitter(seed = 1)) + theme_bw()
 ```
 
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
 This way you can take a closer look at games that will only take an hour
 to finish, most of them Arcade games, but will take up to 80 hours to
 finish completely, in the case of King of Fighters ’98 Ultimate Match
@@ -412,7 +490,7 @@ datos\<-read.delim(“Steam_Library_Metadata_marko_pakete.txt”,header = T)
 
 ###### N?mero de juegos, tiempo total de juego, tiempo medio de juego, conteo de generos, puntuaci?n media y desviaci?n, n?mero de juegos por develop y publisher
 
-\#Number of entries
+#Number of entries
 
 print(dim(datos)\[1\])
 
@@ -425,7 +503,7 @@ datos_lim\[,4\]\<-as.numeric(datos_lim\[,4\])
 datos_lim\<-datos_lim\[datos_lim\[,3\]\>0,\]
 datos_lim\<-datos_lim\[datos_lim\[,4\]\>0,\]
 
-print(paste0(((sum(datos_lim\$V3)/24)/31)/12,” years”))
+print(paste0(((sum(datos_lim$V3)/24)/31)/12,” years”))
 
 # Time to COMPLETE library
 
@@ -436,9 +514,9 @@ datos_lim\[,4\]\<-as.numeric(datos_lim\[,4\])
 datos_lim\<-datos_lim\[datos_lim\[,3\]\>0,\]
 datos_lim\<-datos_lim\[datos_lim\[,4\]\>0,\]
 
-print(paste0(((sum(datos_lim\$V4)/24)/31)/12,” years”))
+print(paste0(((sum(datos_lim$V4)/24)/31)/12,” years”))
 
-\######Tiempo medio
+######Tiempo medio
 
 datos_lim\<-datos\[datos\[,8\]!=“No time registered yet” &
 !is.na(datos\[,8\]),\] datos_lim\[,8\]\<-as.numeric(datos_lim\[,8\])
@@ -448,9 +526,9 @@ mean(datos_lim\[,8\])
 
 ######## Pensar c?mo representar valoraci?n de los juegos por compa??a y por a?o
 
-factor(datos\$V14)
+factor(datos$V14)
 
-heatmap(datos$V15,datos$V14)
+heatmap(datos![V15,datos](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;V15%2Cdatos "V15,datos")V14)
 
 #################### 
 

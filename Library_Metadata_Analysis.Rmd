@@ -6,6 +6,7 @@ output: rmarkdown::github_document
 
 ```{r loadpackages, include=FALSE}
 library(ggplot2)
+library(UpSetR)
 
 #Here you can load your dataset
 
@@ -154,7 +155,15 @@ out
 
 These are the best rated game to entirele complete in a single run
 
+We can use this method to focus in the next game to play according to this criteria, just but filtering out the games already completed at 100%.
+
+```{r}
+out<-datos_lim[datos_lim$time_index==1,][1:30,c(1,11,14,19,26)] ############### CUANDO SE GENERE BIEN LA TABLA!!!
+```
+
 ## Genre analysis
+
+This analysis will show the buying out tendency of owner's library, by showing what kind of games are more prevalent in the library according to genres and tags.
 
 First we need to split de Genre column to create an abscence/presence table. The same for Tags
 
@@ -174,7 +183,7 @@ for (genre_split_cs in genre_split_c) {
   genre_df[genre_split_cs] <- sapply(genre_split, function(x) genre_split_cs %in% x)
 }
 
-genre_df$total <- rowSums(genre_df[genre_split_c])
+#genre_df$total <- rowSums(genre_df[genre_split_c])
 
 #Tags
 
@@ -191,22 +200,90 @@ for (tags_split_cs in tags_split_c) {
   tags_df[tags_split_cs] <- sapply(tags_split, function(x) tags_split_cs %in% x)
 }
 
-tags_df$total <- rowSums(tags_df[tags_split_c])
+#tags_df$total <- rowSums(tags_df[tags_split_c])
 
 ```
 
-Now we can explore the data and plot de proportion of each genre
+Now we can explore the data and plot de proportion of each genre (filteres only showing the most abundant combinations of genre)
 
 ```{r}
-ggplot(genre_df, aes(x = "", y = total, fill = factor(total))) +
-  geom_bar(width = 1, stat = "identity") +
-  coord_polar("y", start = 0) +
-  scale_fill_discrete(name = "Presencia de campos") +
-  ggtitle("Gráfico de pastel de presencia de campos") +
-  xlab("") +
-  ylab("Presencia de campos") +
-  theme_void()
+genre_df[genre_df=="FALSE"]<-0
+upset(genre_df, sets = genre_split_c, nsets = length(genre_split_c), mb.ratio = c(0.5,0.5), order.by = "freq", mainbar.y.label = "Número de filas")
+
 ```
+
+Results show a biased distribution to Indie, action adventure games, being the former the most representative kind of games in the library.
+
+And we can do the same for the tags in the games. There are many tags, we will only focus on the most abundant by filtering out the lest representative (total count less than 20% of the greater counting tag)
+
+```{r}
+tags_df[tags_df=="FALSE"]<-0
+tags_df[dim(tags_df)[1]+1,tags_split_c] <- colSums(tags_df[tags_split_c])
+
+tags_sample<-tags_df[,2:dim(tags_df)[2]]
+
+tags_sample<-tags_sample[,(as.numeric(tags_df[dim(tags_df)[1],tags_split_c])>(0.2*max(tags_df[dim(tags_df)[1],tags_split_c])))]
+tags_sample<-cbind(tags_df[,1],tags_sample)
+tags_sample<-tags_sample[-dim(tags_sample)[1],]
+
+tags_split_c <- colnames(tags_sample)[2:dim(tags_sample)[2]]
+
+upset(tags_sample, sets = tags_split_c, nsets = length(tags_split_c), mb.ratio = c(0.5,0.5), order.by = "freq", mainbar.y.label = "Número de filas")
+```
+
+We can see interesting things, like there is a strong correlation between female protagonist, fantasy, adventure and great soundtrack games. Still interesting is that tags correlate to genre, with singleplayer in the first position.
+
+We can explore the potential correlation between genre and time for finish and complete.
+
+```{r}
+
+subset_genre<-datos[datos$V11 %in% names(table(datos$V11)[table(datos$V11)>(0.1*max(table(datos$V11)))]),]
+
+subset_genre<-subset_genre[subset_genre[,3]!="No time registered yet" & !is.na(subset_genre[,3]) & subset_genre[,3]>0,]
+
+subset_genre$V3<-as.numeric(subset_genre$V3)
+
+average_values <- aggregate(V3 ~ V11, data = subset_genre, mean)
+
+# Reordena los factores de la columna género según la media de tiempo
+subset_genre$V11 <- factor(subset_genre$V11, levels = average_values$V11[order(average_values[,2])])
+
+subset_genre<-subset_genre[subset_genre$V11!="",]
+
+ggplot(subset_genre,aes(V11,log2(V3))) + geom_boxplot() + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) 
+```
+
+Looking at the results we can see that games that are more prevalents in the library are the games that need less time to finish. Would it be the same to 100% complete?
+
+```{r}
+
+subset_genre<-datos[datos$V11 %in% names(table(datos$V11)[table(datos$V11)>(0.1*max(table(datos$V11)))]),]
+
+subset_genre<-subset_genre[subset_genre[,4]!="No time registered yet" & !is.na(subset_genre[,4]) & subset_genre[,4]>0,]
+
+subset_genre$V4<-as.numeric(subset_genre$V4)
+
+average_values <- aggregate(V4 ~ V11, data = subset_genre, mean)
+
+# Reordena los factores de la columna género según la media de tiempo
+subset_genre$V11 <- factor(subset_genre$V11, levels = average_values$V11[order(average_values[,2])])
+
+subset_genre<-subset_genre[subset_genre$V11!="",]
+
+ggplot(subset_genre,aes(V11,log2(V4))) + geom_boxplot() + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1))
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

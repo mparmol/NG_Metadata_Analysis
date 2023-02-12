@@ -1,422 +1,738 @@
 
-## HowLongToBeat method accuracy
+# **NextGame project - Metadata Analysis** ![Stars](https://img.shields.io/github/stars/mparmol/NG_Steam_Library_Metadata)
 
-We analyze the accuracy of the HowLongToBeat methodology. Each hit to
-the database is related to a similarity index.
+The analysis of Data Science projects involves the collection of input
+data, preprocessing, and analysis and interpretation of the data. The
+collection of data from our Steam library was carried out with the
+[Steam Library Metadata
+tool](https://github.com/mparmol/NG_Steam_Library_Metadata), which will
+now serve us for an exhaustive analysis of the data. In this way, we can
+obtain data on the user’s consumption or potential playtime of the
+library, among other general analyses of the video game industry. This
+repository shows tools and methods in R for the analysis of this data,
+but it will always be open to the imagination and needs of each one!
 
-First we need to know the number of games to which we have found a
-result in the database when calling their name with the API. This data
-is analyzed from the “Full” metadata table.
+The first step is to load our input data. In this example, I use the
+data related to Steam’s library as of February 12, 2023.
 
 ``` r
-print(dim(datos[!is.na(datos$V3) &  !is.na(datos$V4),])[1])
+suppressPackageStartupMessages(require("ggplot2"))
+suppressPackageStartupMessages(require("UpSetR"))
+suppressPackageStartupMessages(require("wordcloud2"))
+suppressPackageStartupMessages(require("gplots"))
+suppressPackageStartupMessages(require("corrplot"))
+
+#Here you can load your dataset
+
+input_file<-"Steam_Metadata_Full_marko_pakete.txt"
+
+slibrary_meta<-read.delim(input_file,header = F)
 ```
 
-    ## [1] 2870
+## marko_pakete Steam Library data with 3174 Apps
+
+#### [**1- Preprocessing**](#preprocessing)
+
+#### [**2- HowLongToBeat method accuracy**](#howlongtobeat-method-accuracy)
+
+#### [**3- Basic data analysis**](#basic-data-analysis)
+
+#### [**4- Recomended and forbiden games for achievement collectors**](#recomended-and-forbiden-games-for-achievement-collectors)
+
+#### [**5- Genre analysis**](#genre-analysis)
+
+#### [**6- Best rated games**](#best-rated-games)
+
+#### [**7- Are Games shorter each year**](#are-games-shorter-each-year)
+
+#### [**8- What happened to removed games**](#what-happened-to-removed-games)
+
+# Preprocessing
+
+The preprocessing can be applied to the similarity parameter. We can
+eliminate the results for games that are significantly different from
+the expected best result provided by HowLongToBeat from our data table.
+This can be done by filtering the input table as follows. This step is
+more important for individuals who have a large number of unknown indie
+games in their library, as they may act as false positives due to the
+absence of a HowLongToBeat entry.
+
+``` r
+filter_value<-0 #Change this value to filter out less similar results. You can go as strict as a 1 in similarity, only evaluating perfect matches.
+
+slibrary_meta$V2 <- ifelse(slibrary_meta$V5 < filter_value, NA, slibrary_meta$V2)
+slibrary_meta$V3 <- ifelse(slibrary_meta$V5 < filter_value, NA, slibrary_meta$V3)
+slibrary_meta$V4 <- ifelse(slibrary_meta$V5 < filter_value, NA, slibrary_meta$V4)
+slibrary_meta$V5 <- ifelse(slibrary_meta$V5 < filter_value, NA, slibrary_meta$V5)
+slibrary_meta$V6 <- ifelse(slibrary_meta$V5 < filter_value, NA, slibrary_meta$V6)
+```
+
+# HowLongToBeat method accuracy
+
+The search for the game in the HowLongToBeat database is not an easy
+task. Unlike the rest of the databases, we do not have the AppID for
+each game, so we must compare their names. This can lead to finding
+false positives that skew our statistics. We can evaluate the impact by
+evaluating the similarity value we considered during preprocessing.
+
+First we need to know the number of games to which we have found a
+result in the database when calling their name with the API.
+
+``` r
+print(dim(slibrary_meta[!is.na(slibrary_meta$V3) &  !is.na(slibrary_meta$V4),])[1])
+```
+
+    ## [1] 2878
 
 From the total number we can see the similarity distribution.
 
 ``` r
-ggplot(datos,aes(V5)) + geom_bar()
+ggplot(slibrary_meta,aes(V5)) + geom_bar()
 ```
 
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
 Being the total number of exact matches (similarity = 1)
 
 ``` r
-print(dim(datos[datos$V5==1,])[1])
+print(dim(slibrary_meta[slibrary_meta$V5==1,])[1])
 ```
 
-    ## [1] 2588
+    ## [1] 2598
 
-Focusing on the games that aren’t similaryt=1 we can highlight the
+Focusing on the games that aren’t similarity=1 we can highlight the
 “problems”. Lets focus on each case an their closest result
 
 ``` r
-datos[datos$V5<1,c(1,2,5)][1:20,]
+slibrary_meta[slibrary_meta$V5<1,c(1,2,5)][1:10,]
 ```
 
-    ##                                            V1
-    ## 14                                 Magic 2015
-    ## 23       Plants vs. Zombies: Game of the Year
-    ## 25        The Whispered World Special Edition
-    ## 35         Darksiders II Deathinitive Edition
-    ## 37                            Battle vs Chess
-    ## 40               Hellblade: Senua's Sacrifice
-    ## 59                                    Saviors
-    ## 66                    Jotun: Valhalla Edition
-    ## 70                Wasteland 2: Director's Cut
-    ## 79           Monkey Island 2: Special Edition
-    ## 89       Broken Sword 3 - the Sleeping Dragon
-    ## 90                       DuckTales Remastered
-    ## 91                  Resident Evil Revelations
-    ## 93                                 Hell Yeah!
-    ## 94             Dead Island Definitive Edition
-    ## 98              Shovel Knight: Treasure Trove
-    ## 103     Planescape: Torment: Enhanced Edition
-    ## 104                                99 Spirits
-    ## 106     Sherlock Holmes: The Devil's Daughter
-    ## 110 Injustice: Gods Among Us Ultimate Edition
-    ##                                                         V2   V5
-    ## 14  Magic: The Gathering - Duels of the Planeswalkers 2015 0.19
-    ## 23                                      Plants vs. Zombies 0.50
-    ## 25                                     The Whispered World 0.54
-    ## 35                     Darksiders II: Deathinitive Edition 0.97
-    ## 37                                        Battle vs. Chess 0.94
-    ## 40                            Hellblade: Senua's Sacrifice 0.96
-    ## 59               The Ninja Saviors: Return of the Warriors 0.20
-    ## 66                                                   Jotun 0.22
-    ## 70                                             Wasteland 2 0.41
-    ## 79                      Monkey Island 2: LeChuck's Revenge 0.56
-    ## 89                       Broken Sword: The Sleeping Dragon 0.97
-    ## 90                                   DuckTales: Remastered 0.95
-    ## 91                              Resident Evil: Revelations 0.96
-    ## 93                     Hell Yeah! Wrath of the Dead Rabbit 0.29
-    ## 94                         Dead Island: Definitive Edition 0.97
-    ## 98                                           Shovel Knight 0.45
-    ## 103                                    Planescape: Torment 0.95
-    ## 104                                            Tsukumogami 0.00
-    ## 106                  Sherlock Holmes: The Devil's Daughter 0.97
-    ## 110            Injustice: Gods Among Us - Ultimate Edition 0.95
+    ##                                      V1
+    ## 14                           Magic 2015
+    ## 24 Plants vs. Zombies: Game of the Year
+    ## 26  The Whispered World Special Edition
+    ## 35   Darksiders II Deathinitive Edition
+    ## 37                      Battle vs Chess
+    ## 40         Hellblade: Senua's Sacrifice
+    ## 59                              Saviors
+    ## 66              Jotun: Valhalla Edition
+    ## 70          Wasteland 2: Director's Cut
+    ## 79     Monkey Island 2: Special Edition
+    ##                                                        V2   V5
+    ## 14 Magic: The Gathering - Duels of the Planeswalkers 2015 0.19
+    ## 24                                     Plants vs. Zombies 0.50
+    ## 26                                    The Whispered World 0.54
+    ## 35                    Darksiders II: Deathinitive Edition 0.97
+    ## 37                                       Battle vs. Chess 0.94
+    ## 40                           Hellblade: Senua's Sacrifice 0.96
+    ## 59              The Ninja Saviors: Return of the Warriors 0.20
+    ## 66                                                  Jotun 0.22
+    ## 70                                            Wasteland 2 0.41
+    ## 79                     Monkey Island 2: LeChuck's Revenge 0.56
 
-So as we can see, most “problems” are derived from typos, such as “:” o
-romanic values
+So as we can see, most discrepancies are derived from typos, such as “:”
+o roman values.Although the number of false positives is low (around 1%
+of the total matches) it is still recommended to filtered low similarity
+entries from the data table.
 
-## Recomended and forbiden games for achivement collectors
+# Basic data analysis
 
-If you are a completionist you would like to play games that are easy to
-100% complete. This is not only the shorttest games, but the games that
-could be easily completed just playing (avoiding in the majority of
-cases farming/grinding games). The representation of the time to beat
-against the time t beat at 100% could shade lights on this question
+The basic data analysis is based on descriptive statistics of the data.
+In our case, we are going to focus on the potential play time values.
+
+· Total time to finish library.
 
 ``` r
-datos_lim<-datos[datos[,3]!="No time registered yet",] # We remove the entries with not time regisrered yet
-datos_lim[,3]<-as.numeric(datos_lim[,3]) 
-datos_lim[,4]<-as.numeric(datos_lim[,4])
-
-datos_lim<-datos_lim[datos_lim[,3]>0,] # We remove the 0 hours game
-datos_lim<-datos_lim[datos_lim[,4]>0,]
-
-ggplot(datos_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
+paste(sum(as.numeric(slibrary_meta[slibrary_meta[,3]!="No time registered yet" & !is.na(slibrary_meta[,3]),3])),"h")
 ```
 
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
-
-A lot of sport simulation games, concretely Football Manager games, and
-Aura Kingdom are the games that show the most biased distribution when
-comparing both parameters, based in farming and repetition. Football
-Manager games surround 1000h of game play to complete it at a 100%,
-while Aura Kingdom, a MMO, is up to 9000h to finish it. It is easy to
-think on these as farming related achievements that will take an insane
-amount of time.
-
-But we can see much using this kind of approach, so we better create a
-index to save the games that are more biased according to the difference
-beeteen finished and 100% games
+    ## [1] "28227 h"
 
 ``` r
-datos_lim$time_index<-datos_lim$V4/datos_lim$V3
-
-datos_lim <- datos_lim[order(as.factor(datos_lim$time_index),decreasing = T),]
-datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
-
-#time_rel<-datos_lim[order(datos_lim$time_index,decreasing=TRUE),]
-
-#ggplot(time_rel[1:5,],aes(V1,time_index)) + geom_bar()
-
-ggplot(datos_lim[1:20,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
+paste(round(sum(as.numeric(slibrary_meta[slibrary_meta[,3]!="No time registered yet" & !is.na(slibrary_meta[,3]),3]))/24/30/12,digits = 2),"years")
 ```
 
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+    ## [1] "3.27 years"
 
-The same way, we can take a look to the fastest game to complete,
-looking at game with the lowest index
+· Average time to finish a game.
 
 ``` r
-datos_lim <- datos_lim[order(as.factor(datos_lim$time_index),decreasing = F),]
-datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
-
-#time_rel<-datos_lim[order(datos_lim$time_index,decreasing=TRUE),]
-
-#ggplot(time_rel[1:5,],aes(V1,time_index)) + geom_bar()
-
-#ggplot(datos_lim[1:30,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
-
-paste("Number of games that can be 100% achieved by finishing it:",length(na.omit(datos_lim[datos_lim$time_index==1,1])))
+paste(round(mean(as.numeric(slibrary_meta[slibrary_meta[,3]!="No time registered yet" & !is.na(slibrary_meta[,3]),3])),digits = 2),"h")
 ```
 
-    ## [1] "Number of games that can be 100% achieved by finishing it: 134"
+    ## [1] "11.61 h"
 
 ``` r
-as.character(na.omit(datos_lim[datos_lim$time_index==1,1])[1:30])
+ggplot(slibrary_meta[slibrary_meta[,3]!="No time registered yet" & !is.na(slibrary_meta[,3]) & slibrary_meta[,3]>0,], aes(x=factor(V3, level=seq(min(as.numeric(slibrary_meta[slibrary_meta[,3]!="No time registered yet" & !is.na(slibrary_meta[,3]),3])),max(as.numeric(slibrary_meta[slibrary_meta[,3]!="No time registered yet" & !is.na(slibrary_meta[,3]),3])),1)))) + geom_histogram(stat = "count") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1)) + ylab("Games count") + xlab("Time to finish (h)")
 ```
 
-    ##  [1] "Broken Sword 3 - the Sleeping Dragon"        
-    ##  [2] "The Room 4: Old Sins"                        
-    ##  [3] "Albedo: Eyes from Outer Space"               
-    ##  [4] "Belladonna"                                  
-    ##  [5] "Spoiler Alert"                               
-    ##  [6] "qop 2"                                       
-    ##  [7] "Sakura Magical Girls"                        
-    ##  [8] "Mystery Masters: Psycho Train Deluxe Edition"
-    ##  [9] "Sakura Beach"                                
-    ## [10] "Survival Zombies The Inverted Evolution"     
-    ## [11] "Cyber City 2157: The Visual Novel"           
-    ## [12] "Zup! 6"                                      
-    ## [13] "The Room"                                    
-    ## [14] "Castle of no Escape"                         
-    ## [15] "DarkBase 01"                                 
-    ## [16] "Sweet fantasy"                               
-    ## [17] "Calcu-Late"                                  
-    ## [18] "Machine Hunt"                                
-    ## [19] "Unhack"                                      
-    ## [20] "Zup! 7"                                      
-    ## [21] "Broken Dreams"                               
-    ## [22] "The Vanishing of Ethan Carter"               
-    ## [23] "To the Moon"                                 
-    ## [24] "Apartment 666"                               
-    ## [25] "The Room Two"                                
-    ## [26] "Oknytt"                                      
-    ## [27] "The Norwood Suite"                           
-    ## [28] "Kathy Rain"                                  
-    ## [29] "Insincere"                                   
-    ## [30] "qop"
+    ## Warning: Ignoring unknown parameters: binwidth, bins, pad
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+· Average time to 100% complete a game. Here we are taking into acount
+games with and without achievements.
+
+``` r
+paste(round(mean(as.numeric(slibrary_meta[slibrary_meta[,4]!="No time registered yet" & !is.na(slibrary_meta[,4]),4])),digits = 2),"h")
+```
+
+    ## [1] "42.24 h"
+
+· Total time to 100% complete library.
+
+``` r
+paste(sum(as.numeric(slibrary_meta[slibrary_meta[,4]!="No time registered yet" & !is.na(slibrary_meta[,4]),4])),"h")
+```
+
+    ## [1] "102725 h"
+
+``` r
+paste(round(sum(as.numeric(slibrary_meta[slibrary_meta[,4]!="No time registered yet" & !is.na(slibrary_meta[,4]),4]))/24/30/12,digits = 2),"years")
+```
+
+    ## [1] "11.89 years"
+
+· Average positive rating
+
+``` r
+paste(round(mean(na.omit(slibrary_meta$V23)),digits = 2),"+",round(sd(na.omit(slibrary_meta$V23)),digits = 2))
+```
+
+    ## [1] "74.89 + 19.31"
+
+# Recomended and forbiden games for achievement collectors
+
+If you are someone who wants to complete games to 100%, you may be
+interested in finding games that are easy to achieve that goal. This
+means not just the shortest games, but also those that can be completed
+simply by playing through them once, without the need for repetitive
+farming or grinding. A comparison of the time it takes to beat a game
+versus the time it takes to complete it at 100% can shed light on this
+topic.
+
+Initially, we need to eliminate games that do not have any achievements.
+
+``` r
+slibrary_meta_lim<-slibrary_meta[slibrary_meta[,3]!="No time registered yet" & !is.na(slibrary_meta[,25]),] # We remove the entries with not time regisrered yet
+slibrary_meta_lim[,3]<-as.numeric(slibrary_meta_lim[,3]) 
+slibrary_meta_lim[,4]<-as.numeric(slibrary_meta_lim[,4])
+
+slibrary_meta_lim<-slibrary_meta_lim[slibrary_meta_lim[,3]>0,] # We remove the 0 hours game
+slibrary_meta_lim<-slibrary_meta_lim[slibrary_meta_lim[,4]>0,]
+
+ggplot(slibrary_meta_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
+```
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+Many sport simulation games, specifically Football Manager games,
+exhibit the most skewed distribution when comparing both parameters,
+based on farming and repetition. Completing Football Manager games at
+100% requires around 1000 hours of playtime, making it easy to view
+these as achievements that would take an excessive amount of time to
+achieve through farming.
+
+However, using this kind of approach limits our insights, so it would be
+better to create an index to record the games that are more biased based
+on the difference between completed and 100% completion times.
+
+``` r
+slibrary_meta_lim$time_index<-slibrary_meta_lim$V4/slibrary_meta_lim$V3
+
+slibrary_meta_lim <- slibrary_meta_lim[order(as.factor(slibrary_meta_lim$time_index),decreasing = T),]
+slibrary_meta_lim$V1 <- reorder(slibrary_meta_lim$V1, -slibrary_meta_lim$time_index)
+
+ggplot(slibrary_meta_lim[1:20,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + xlab(NULL)
+```
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+These games would be the hardest, attending to time, to master. The same
+way, we can take a look to the fastest game to 100% complete, looking at
+game with the lowest index.
+
+``` r
+slibrary_meta_lim <- slibrary_meta_lim[order(as.factor(slibrary_meta_lim$time_index),decreasing = F),]
+slibrary_meta_lim$V1 <- reorder(slibrary_meta_lim$V1, -slibrary_meta_lim$time_index)
+
+paste("Number of games that can be 100% achieved by finishing it:",length(na.omit(slibrary_meta_lim[slibrary_meta_lim$time_index==1,1])))
+```
+
+    ## [1] "Number of games that can be 100% achieved by finishing it: 71"
+
+``` r
+as.character(na.omit(slibrary_meta_lim[slibrary_meta_lim$time_index==1,1])[1:30])
+```
+
+    ##  [1] "The Room 4: Old Sins"                        
+    ##  [2] "Albedo: Eyes from Outer Space"               
+    ##  [3] "Spoiler Alert"                               
+    ##  [4] "qop 2"                                       
+    ##  [5] "Sakura Magical Girls"                        
+    ##  [6] "Zup! 6"                                      
+    ##  [7] "The Room"                                    
+    ##  [8] "Castle of no Escape"                         
+    ##  [9] "Sweet fantasy"                               
+    ## [10] "Machine Hunt"                                
+    ## [11] "Zup! 7"                                      
+    ## [12] "The Vanishing of Ethan Carter"               
+    ## [13] "To the Moon"                                 
+    ## [14] "The Saint: Abyss of Despair"                 
+    ## [15] "Apartment 666"                               
+    ## [16] "The Room Two"                                
+    ## [17] "Oknytt"                                      
+    ## [18] "The Norwood Suite"                           
+    ## [19] "Kathy Rain"                                  
+    ## [20] "qop"                                         
+    ## [21] "Dreaming Sarah"                              
+    ## [22] "LEAVES - The Journey"                        
+    ## [23] "Adventure Time: Finn and Jake Investigations"
+    ## [24] "Zup! 2"                                      
+    ## [25] "Terra Incognita Chapter One: The Descendant" 
+    ## [26] "Two Digits"                                  
+    ## [27] "Tower Wars"                                  
+    ## [28] "Zup! 5"                                      
+    ## [29] "Zup! 4"                                      
+    ## [30] "Zup! 3"
 
 We can order this information by user positive rating
 
 ``` r
-datos_lim <- datos_lim[(datos_lim[,12]+datos_lim[,13])>=100,]
-datos_lim <- datos_lim[order(as.factor(round((datos_lim[,12]/(datos_lim[,12]+datos_lim[,13]))*100,digits=1)),decreasing = T),]
-datos_lim$V1 <- reorder(datos_lim$V1, -datos_lim$time_index)
+slibrary_meta_lim <- slibrary_meta_lim[slibrary_meta_lim$V24>=100,]
+slibrary_meta_lim <- slibrary_meta_lim[order(as.factor(slibrary_meta_lim$V23),decreasing = T),]
+slibrary_meta_lim$V1 <- reorder(slibrary_meta_lim$V1, -slibrary_meta_lim$time_index)
 
-datos_lim$rating <- as.factor(round((datos_lim[,12]/(datos_lim[,12]+datos_lim[,13]))*100,digits=1))
-#time_rel<-datos_lim[order(datos_lim$time_index,decreasing=TRUE),]
+slibrary_meta_lim$rating <- as.factor(slibrary_meta_lim$V23)
 
-#ggplot(time_rel[1:5,],aes(V1,time_index)) + geom_bar()
-
-#ggplot(datos_lim[1:30,], aes(V1,time_index,label=V1)) + geom_bar(stat = "identity") + theme_bw() + theme(axis.text.x = element_text(angle=90, hjust=1))
-
-out<-datos_lim[datos_lim$time_index==1,][1:30,c(1,11,14,19,26)]
+out<-slibrary_meta_lim[slibrary_meta_lim$time_index==1,][1:10,c(1,11,14,19,23)]
 colnames(out)<-c("Name","Genre","Developer","Release date","Positive rating")
 out
 ```
 
-    ##                                          Name
-    ## 157                      The Room 4: Old Sins
-    ## 789                              The Room Two
-    ## 447                                  The Room
-    ## 1161                                   Zup! F
-    ## 1230                          The Expendabros
-    ## 718                               To the Moon
-    ## 1227                                   Zup! 9
-    ## 2634                         Rusty Lake Hotel
-    ## 648                                    Zup! 7
-    ## 879                                    Zup! 2
-    ## 342                                     qop 2
-    ## 2832               Tales from the Borderlands
-    ## 2400                  Oddworld: Abe's Exoddus
-    ## 3150                              Zup! Zero 2
-    ## 435                                    Zup! 6
-    ## 2946                         Thomas Was Alone
-    ## 958                                    Zup! 5
-    ## 2907                         The Office Quest
-    ## 1180                                Zup! Zero
-    ## 2863 The Awesome Adventures of Captain Spirit
-    ## 825                                Kathy Rain
-    ## 799                                    Oknytt
-    ## 2485                         Press Any Button
-    ## 1235          Resident Evil 2 \\1-Shot Demo\\
-    ## 830                                       qop
-    ## 2068                             Hector: Ep 3
-    ## 2218                           Lines Infinite
-    ## 839                            Dreaming Sarah
-    ## 2645         Sam & Max 102: Situation: Comedy
-    ## 1573                               Big Dipper
-    ##                                       Genre
-    ## 157                               Adventure
-    ## 789                        Adventure, Indie
-    ## 447                        Adventure, Indie
-    ## 1161                          Casual, Indie
-    ## 1230 Action, Adventure, Free to Play, Indie
-    ## 718                   Adventure, Indie, RPG
-    ## 1227                          Casual, Indie
-    ## 2634                       Adventure, Indie
-    ## 648                           Casual, Indie
-    ## 879                           Casual, Indie
-    ## 342                           Casual, Indie
-    ## 2832                              Adventure
-    ## 2400                              Adventure
-    ## 3150                          Casual, Indie
-    ## 435                           Casual, Indie
-    ## 2946                                  Indie
-    ## 958                           Casual, Indie
-    ## 2907                       Adventure, Indie
-    ## 1180                          Casual, Indie
-    ## 2863                Adventure, Free to Play
-    ## 825                        Adventure, Indie
-    ## 799                        Adventure, Indie
-    ## 2485                          Casual, Indie
-    ## 1235                                 Action
-    ## 830                           Casual, Indie
-    ## 2068                      Adventure, Casual
-    ## 2218                Casual, Indie, Strategy
-    ## 839                Adventure, Casual, Indie
-    ## 2645                      Action, Adventure
-    ## 1573                      Indie, Simulation
+    ##                      Name                 Genre       Developer Release date
+    ## 157  The Room 4: Old Sins             Adventure Fireproof Games  11-Feb-2021
+    ## 447              The Room      Adventure, Indie Fireproof Games  28-Jul-2014
+    ## 789          The Room Two      Adventure, Indie Fireproof Games  05-Jul-2016
+    ## 1163               Zup! F         Casual, Indie     Quiet River  11-Dec-2019
+    ## 714           To the Moon Adventure, Indie, RPG  Freebird Games  07-Sep-2012
+    ## 1228               Zup! 9         Casual, Indie     Quiet River  24-Jun-2019
+    ## 2643     Rusty Lake Hotel      Adventure, Indie      Rusty Lake  29-Jan-2016
+    ## 647                Zup! 7         Casual, Indie     Quiet River  12-Dec-2017
+    ## 880                Zup! 2         Casual, Indie     Quiet River  05-Dec-2016
+    ## 341                 qop 2         Casual, Indie     Quiet River  12-Dec-2017
+    ##      Positive rating
+    ## 157             98.8
+    ## 447             97.8
+    ## 789             97.8
+    ## 1163            97.3
+    ## 714             96.4
+    ## 1228            95.9
+    ## 2643            95.8
+    ## 647             95.6
+    ## 880             95.6
+    ## 341             95.3
+
+These are the best rated game to entirely complete in a single run
+
+We can use this method to focus in the next game to play according to
+this criteria, just but filtering out the games already completed at
+100%.This is the list of the next 10 possible games.
+
+``` r
+out<-slibrary_meta_lim[slibrary_meta_lim$time_index==1 & is.na(slibrary_meta_lim$V17),][1:10,c(1,11,3,14,19,23)]
+colnames(out)<-c("Name","Genre","Time to complete (h)","Developer","Release date","Positive rating")
+out
+```
+
+    ##                            Name                    Genre Time to complete (h)
+    ## 2643           Rusty Lake Hotel         Adventure, Indie                    2
+    ## 2842 Tales from the Borderlands                Adventure                   11
+    ## 3161                Zup! Zero 2            Casual, Indie                    1
+    ## 2956           Thomas Was Alone                    Indie                    4
+    ## 2917           The Office Quest         Adventure, Indie                    4
+    ## 824                  Kathy Rain         Adventure, Indie                    6
+    ## 2493           Press Any Button            Casual, Indie                    1
+    ## 801                      Oknytt         Adventure, Indie                    5
+    ## 2225             Lines Infinite  Casual, Indie, Strategy                    3
+    ## 839              Dreaming Sarah Adventure, Casual, Indie                    2
     ##                                   Developer Release date Positive rating
-    ## 157                         Fireproof Games  11-Feb-2021            98.8
-    ## 789                         Fireproof Games  05-Jul-2016            97.8
-    ## 447                         Fireproof Games  28-Jul-2014            97.7
-    ## 1161                            Quiet River  11-Dec-2019            97.3
-    ## 1230                             Free Lives  05-Aug-2014            97.2
-    ## 718                          Freebird Games  07-Sep-2012            96.4
-    ## 1227                            Quiet River  24-Jun-2019            95.8
-    ## 2634                             Rusty Lake  29-Jan-2016            95.8
-    ## 648                             Quiet River  12-Dec-2017            95.6
-    ## 879                             Quiet River  05-Dec-2016            95.6
-    ## 342                             Quiet River  12-Dec-2017            95.3
-    ## 2832                         Telltale Games  16-Feb-2021            95.2
-    ## 2400                   Oddworld Inhabitants  28-Aug-2008              95
-    ## 3150                            Quiet River  11-Sep-2018            94.8
-    ## 435                             Quiet River  19-Sep-2017            94.5
-    ## 2946                          Bithell Games  12-Nov-2012            93.9
-    ## 958                             Quiet River  13-Jun-2017            93.8
-    ## 2907                                11Sheep  24-May-2018            93.7
-    ## 1180                            Quiet River  06-Apr-2017            93.6
-    ## 2863                  DONTNOD Entertainment  25-Jun-2018            92.7
-    ## 825                          Clifftop Games  05-May-2016            92.6
-    ## 799                   Nemoria Entertainment  04-Apr-2014            92.3
-    ## 2485                           Eugene Zubko  07-Jan-2021            92.3
-    ## 1235                       CAPCOM Co., Ltd.         <NA>            92.1
-    ## 830                             Quiet River  13-Jul-2017            91.6
-    ## 2068                               Telltale  27-Apr-2011            91.3
-    ## 2218                           Konstructors  24-Nov-2017            91.3
+    ## 2643                             Rusty Lake  29-Jan-2016            95.8
+    ## 2842                         Telltale Games  16-Feb-2021            95.2
+    ## 3161                            Quiet River  11-Sep-2018            94.8
+    ## 2956                          Bithell Games  12-Nov-2012            93.9
+    ## 2917                                11Sheep  24-May-2018            93.7
+    ## 824                          Clifftop Games  05-May-2016            92.5
+    ## 2493                           Eugene Zubko  07-Jan-2021            92.3
+    ## 801                   Nemoria Entertainment  04-Apr-2014            92.1
+    ## 2225                           Konstructors  24-Nov-2017            91.3
     ## 839  Asteristic Game Studio, Anthony Septim  12-Mar-2015            91.1
-    ## 2645                         Telltale Games  15-Jun-2007            91.1
-    ## 1573                             Team Zimno  07-Jan-2019            90.8
 
-These are the best rated game to entirele complete in a single run
+# Genre analysis
 
-If we remove these games we could focus on the next most biased games
+This analysis will reveal the purchasing patterns of the library owner
+by displaying the most prevalent types of games in the library based on
+genres and tags.
 
-``` r
-datos_lim<-datos_lim[!grepl("Football Manager",datos_lim[,1]) & datos_lim[,1]!="Aura Kingdom",]
-
-ggplot(datos_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
-```
-
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
-
-Even after removing those games, there are still plenty of games biased
-to the 100% completion rate. Now we can see othe sport games, such as
-NBA and Our of the park games, in company with MMO titles like Black
-Desert, on the top of the figure. After removing them we can see other
-games. These games are the more time demanding game, for finishing and
-completion, but not the most biased games. To get the names of the most
-based game we should focus on the games that have a really low time to
-complete (less than 5h) but insane time for 100% finishing.
+To begin, we must divide the Genre column to create a presence/absence
+table, as well as the same for the Tags column.
 
 ``` r
-datos_lim<-datos_lim[datos_lim$V3<=5,]
+#Genre
 
-ggplot(datos_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
+slibrary_meta$V11<-gsub(", ",",",slibrary_meta$V11)
+
+genre_df<-data.frame(matrix(nrow = dim(slibrary_meta)[1]))
+genre_df[,1]<-slibrary_meta$V1
+
+genre_split <- strsplit(slibrary_meta$V11, ",")
+
+genre_split_c <- na.omit(unique(unlist(genre_split)))
+
+for (genre_split_cs in genre_split_c) {
+  genre_df[genre_split_cs] <- sapply(genre_split, function(x) genre_split_cs %in% x)
+}
+
+genre_df[genre_df=="FALSE"]<-0
+
+#Tags
+
+slibrary_meta$V16<-gsub(", ",",",slibrary_meta$V16)
+
+tags_df<-data.frame(matrix(nrow = dim(slibrary_meta)[1]))
+tags_df[,1]<-slibrary_meta$V1
+
+tags_split <- strsplit(slibrary_meta$V16, ",")
+
+tags_split_c <- na.omit(unique(unlist(tags_split)))
+
+for (tags_split_cs in tags_split_c) {
+  tags_df[tags_split_cs] <- sapply(tags_split, function(x) tags_split_cs %in% x)
+}
+
+tags_df[tags_df=="FALSE"]<-0
 ```
 
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
-
-This representation is not the best option for lloking at the data,
-let’s represent it as barplots
+And see what are the most prevalent Genre and Tags
 
 ``` r
-datos_lim<-datos_lim[datos_lim$V3<=1,]
+#Genre
 
-ggplot(datos_lim, aes(V3,V4,label=V1)) + geom_jitter(position = position_jitter(seed = 1)) + geom_text(position = position_jitter(seed = 1)) + theme_bw()
+genre_freq<-as.data.frame(colSums(genre_df[,2:dim(genre_df)[2]]))
+
+genre_freq$word<-rownames(genre_freq)
+colnames(genre_freq)[1]<-"freq"
+
+genre_freq<-genre_freq[,c(2,1)]
+
+
+wordcloud2(data=genre_freq, size=0.8)
 ```
 
-![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
-This way you can take a closer look at games that will only take an hour
-to finish, most of them Arcade games, but will take up to 80 hours to
-finish completely, in the case of King of Fighters ’98 Ultimate Match
-Final Edition. (ESTO ES MEJOR HACER BoxPlot y mostrar solo los puntos
-que sean outlier…cómo?)
-
-################################# Analyze Steam_library
-
-datos\<-read.delim(“Steam_Library_Metadata_marko_pakete.txt”,header = T)
-
-###### N?mero de juegos, tiempo total de juego, tiempo medio de juego, conteo de generos, puntuaci?n media y desviaci?n, n?mero de juegos por develop y publisher
-
-\#Number of entries
-
-print(dim(datos)\[1\])
-
-# Time to finish library
-
-datos_lim\<-datos\[datos\[,3\]!=“No time registered yet” &
-!is.na(datos\[,3\]),\] datos_lim\[,3\]\<-as.numeric(datos_lim\[,3\])
-datos_lim\[,4\]\<-as.numeric(datos_lim\[,4\])
-
-datos_lim\<-datos_lim\[datos_lim\[,3\]\>0,\]
-datos_lim\<-datos_lim\[datos_lim\[,4\]\>0,\]
-
-print(paste0(((sum(datos_lim\$V3)/24)/31)/12,” years”))
-
-# Time to COMPLETE library
-
-datos_lim\<-datos\[datos\[,4\]!=“No time registered yet” &
-!is.na(datos\[,4\]),\] datos_lim\[,3\]\<-as.numeric(datos_lim\[,3\])
-datos_lim\[,4\]\<-as.numeric(datos_lim\[,4\])
-
-datos_lim\<-datos_lim\[datos_lim\[,3\]\>0,\]
-datos_lim\<-datos_lim\[datos_lim\[,4\]\>0,\]
-
-print(paste0(((sum(datos_lim\$V4)/24)/31)/12,” years”))
-
-\######Tiempo medio
-
-datos_lim\<-datos\[datos\[,8\]!=“No time registered yet” &
-!is.na(datos\[,8\]),\] datos_lim\[,8\]\<-as.numeric(datos_lim\[,8\])
-datos_lim\<-datos_lim\[datos_lim\[,8\]\>0,\]
-
-mean(datos_lim\[,8\])
-
-######## Pensar c?mo representar valoraci?n de los juegos por compa??a y por a?o
-
-factor(datos\$V14)
-
-heatmap(datos$V15,datos$V14)
-
-#################### 
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax
-for authoring HTML, PDF, and MS Word documents. For more details on
-using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that
-includes both content as well as the output of any embedded R code
-chunks within the document. You can embed an R code chunk like this:
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
 ``` r
-summary(cars)
+#Tags
+
+tags_freq<-as.data.frame(colSums(tags_df[,2:dim(tags_df)[2]]))
+
+tags_freq$word<-rownames(tags_freq)
+colnames(tags_freq)[1]<-"freq"
+
+tags_freq<-tags_freq[,c(2,1)]
+
+
+wordcloud2(data=tags_freq, size=1)
 ```
 
-    ##      speed           dist       
-    ##  Min.   : 4.0   Min.   :  2.00  
-    ##  1st Qu.:12.0   1st Qu.: 26.00  
-    ##  Median :15.0   Median : 36.00  
-    ##  Mean   :15.4   Mean   : 42.98  
-    ##  3rd Qu.:19.0   3rd Qu.: 56.00  
-    ##  Max.   :25.0   Max.   :120.00
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-18-2.png)<!-- -->
 
-## Including Plots
+Now, we can examine the data and plot the percentage of each genre, only
+displaying the most frequent genre combinations.
 
-You can also embed plots, for example:
+``` r
+upset(genre_df, sets = genre_split_c, nsets = length(genre_split_c), mb.ratio = c(0.5,0.5), order.by = "freq", mainbar.y.label = "Número de filas")
+```
 
-![](Library_Metadata_Analysis_files/figure-gfm/pressure-1.png)<!-- -->
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
 
-Note that the `echo = FALSE` parameter was added to the code chunk to
-prevent printing of the R code that generated the plot.
+The results indicate a strong preference for Indie and action-adventure
+games, with the former being the most commonly found type of game in the
+library.
+
+Similarly, we can analyze the tags associated with the games. Given the
+large number of tags, we will focus only on the most prevalent ones by
+excluding those that have a count less than 20% of the highest counted
+tag.
+
+``` r
+tags_df[dim(tags_df)[1]+1,tags_split_c] <- colSums(tags_df[tags_split_c])
+
+tags_sample<-tags_df[,2:dim(tags_df)[2]]
+
+tags_sample<-tags_sample[,(as.numeric(tags_df[dim(tags_df)[1],tags_split_c])>(0.2*max(tags_df[dim(tags_df)[1],tags_split_c])))]
+tags_sample<-cbind(tags_df[,1],tags_sample)
+tags_sample<-tags_sample[-dim(tags_sample)[1],]
+
+tags_split_c <- colnames(tags_sample)[2:dim(tags_sample)[2]]
+
+upset(tags_sample, sets = tags_split_c, nsets = length(tags_split_c), mb.ratio = c(0.5,0.5), order.by = "freq", mainbar.y.label = "Número de filas")
+```
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+
+The results reveal interesting insights, such as a strong correlation
+between games with female protagonists, fantasy elements, adventurous
+elements, and great soundtracks. It is also noteworthy that the tags
+tend to align with the genres, with single-player being the most
+prominent.
+
+Next, we can examine the potential correlation between genres and the
+time it takes to complete the game or finish it at 100%.
+
+``` r
+subset_genre<-slibrary_meta[slibrary_meta$V11 %in% names(table(slibrary_meta$V11)[table(slibrary_meta$V11)>(0.1*max(table(slibrary_meta$V11)))]),]
+
+subset_genre<-subset_genre[subset_genre[,3]!="No time registered yet" & !is.na(subset_genre[,3]) & subset_genre[,3]>0,]
+
+subset_genre$V3<-as.numeric(subset_genre$V3)
+
+average_values <- aggregate(V3 ~ V11, data = subset_genre, mean)
+
+# Reordena los factores de la columna género según la media de tiempo
+subset_genre$V11 <- factor(subset_genre$V11, levels = average_values$V11[order(average_values[,2])])
+
+subset_genre<-subset_genre[subset_genre$V11!="",]
+
+ggplot(subset_genre,aes(V11,log2(V3),fill=V11)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none")
+```
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+
+Looking at the results we can see that games that are more prevalent in
+the library are the games that need less time to finish. Would it be the
+same to 100% complete?
+
+``` r
+subset_genre<-slibrary_meta[slibrary_meta$V11 %in% names(table(slibrary_meta$V11)[table(slibrary_meta$V11)>(0.1*max(table(slibrary_meta$V11)))]),]
+
+subset_genre<-subset_genre[subset_genre[,4]!="No time registered yet" & !is.na(subset_genre[,4]) & subset_genre[,4]>0,]
+
+subset_genre$V4<-as.numeric(subset_genre$V4)
+
+average_values <- aggregate(V4 ~ V11, data = subset_genre, mean)
+
+# Reordena los factores de la columna género según la media de tiempo
+subset_genre$V11 <- factor(subset_genre$V11, levels = average_values$V11[order(average_values[,2])])
+
+subset_genre<-subset_genre[subset_genre$V11!="",]
+
+ggplot(subset_genre,aes(V11,log2(V4),fill=V11)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none")
+```
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+
+The basically follow the same pattern.
+
+## How similar are games and genre/tags
+
+This approach allows us to observe how games group together based on
+their genre, and how genres group together based on their frequency of
+co-occurrence.
+
+``` r
+genre_cor<-genre_df
+
+genre_cor$row_name = slibrary_meta[,7]
+genre_cor$row_name = ifelse(duplicated(genre_cor$row_name), paste0(genre_cor$row_name, ".1"), genre_cor$row_name)
+row.names(genre_cor) = genre_cor$row_name
+genre_cor$row_name = NULL
+genre_cor<-genre_cor[,-1]
+
+heatmap.2(as.matrix(genre_cor),trace = "none")
+```
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+
+``` r
+corrplot(cor(genre_cor),diag = F)
+```
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-23-2.png)<!-- -->
+
+We can observe a high correlation between Action, Adventure and Indie
+games. Another interesting point is that Multiplayer games are usually
+free to play.
+
+For tags we can do the same analysis
+
+``` r
+tags_cor<-tags_df[-dim(tags_df)[1],]
+tags_cor$row_name = slibrary_meta[,7]
+tags_cor$row_name = ifelse(duplicated(tags_cor$row_name), paste0(tags_cor$row_name, ".1"), tags_cor$row_name)
+row.names(tags_cor) = tags_cor$row_name
+tags_cor$row_name = NULL
+tags_cor<-tags_cor[,-1]
+
+#As the dendogram using all tags would be really large, we would randomly subsample some rows and columns
+
+set.seed(1)
+
+tags_cor<-tags_cor[sample(nrow(tags_cor), 30), sample(20)]
+
+a<-as.dendrogram(hclust(dist(t(tags_cor))))
+
+plot(a)
+```
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+
+We can observe a strong association between single player games that are
+action-based, or cooperative multiplayer games. Similarly, online
+cooperative games have a strong link with PvE games. In turn, RPG games
+are often related to fantastical worlds.
+
+# Best rated games
+
+We can investigate the positive ratings for each game to see if there is
+a pattern of high-rated games by genre or developer. Furthermore, we can
+assess the distribution of positive ratings in relation to the game
+genre.
+
+``` r
+subset_genre<-slibrary_meta[slibrary_meta$V11 %in% names(table(slibrary_meta$V11)[table(slibrary_meta$V11)>(0.1*max(table(slibrary_meta$V11)))]),]
+
+subset_genre<-subset_genre[!is.na(subset_genre$V23),]
+
+average_values <- aggregate(V23 ~ V11, data = subset_genre, mean)
+
+# Reordena los factores de la columna género según la media de tiempo
+subset_genre$V11 <- factor(subset_genre$V11, levels = average_values$V11[order(average_values[,2])])
+
+subset_genre<-subset_genre[subset_genre$V11!="",]
+
+ggplot(subset_genre,aes(V11,V23,fill=V11)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none") + xlab(NULL) + ylab("Positive rating")
+```
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
+
+By doing so, we observe that games in the simulation/sports genre have
+the lowest ratings, while action RPG and casual games are the most
+highly rated.
+
+By developer
+
+``` r
+subset_genre<-slibrary_meta[slibrary_meta$V14 %in% names(table(slibrary_meta$V14)[table(slibrary_meta$V14)>(0.1*max(table(slibrary_meta$V14)))]),]
+
+subset_genre<-subset_genre[!is.na(subset_genre$V23),]
+
+average_values <- aggregate(V23 ~ V14, data = subset_genre, mean)
+
+# Reordena los factores de la columna género según la media de tiempo
+subset_genre$V14 <- factor(subset_genre$V14, levels = average_values$V14[order(average_values[,2])])
+
+subset_genre<-subset_genre[subset_genre$V14!="" & !is.na(subset_genre$V14),]
+
+ggplot(subset_genre,aes(V14,V23,fill=V14)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none") + xlab(NULL) + ylab("Positive rating")
+```
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+
+The highest rated games are developed by Quiet River (Zup and qop),
+Valve, and Telltale Games, while the lowest rated games are developed by
+Ripknot Systems.
+
+# Are Games shorter each year
+
+We can explore the possibility of playing time in games declining over
+the years by creating a representation of the playing time against the
+release date.
+
+``` r
+subset_slibrary_meta<-slibrary_meta[slibrary_meta[,3]!="No time registered yet" & !is.na(slibrary_meta[,3]) & slibrary_meta[,3]>0,]
+
+subset_slibrary_meta$V3<-as.numeric(subset_slibrary_meta$V3)
+
+# We need to extract the year from Release date column
+
+fecha_split <- strsplit(subset_slibrary_meta$V19, "-")
+subset_slibrary_meta$year <- sapply(fecha_split, function(x) x[3])
+subset_slibrary_meta$year <- as.factor(subset_slibrary_meta$year)
+
+subset_slibrary_meta<-subset_slibrary_meta[!is.na(subset_slibrary_meta$year),]
+
+ggplot(subset_slibrary_meta,aes(year,log2(V3),fill=year)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none")
+```
+
+    ## Warning: Groups with fewer than two data points have been dropped.
+
+    ## Warning: Groups with fewer than two data points have been dropped.
+
+    ## Warning: Groups with fewer than two data points have been dropped.
+
+    ## Warning: Groups with fewer than two data points have been dropped.
+
+![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
+
+We can see that there is no a clear tendecy of games having a shorter
+playing time along the years.
+
+# What happened to removed games
+
+We can investigate the reasons for the removal of games by examining the
+developers behind them.
+
+``` r
+sort(table(slibrary_meta[!is.na(slibrary_meta$V22),14][slibrary_meta[!is.na(slibrary_meta$V22),14]!=""]),decreasing = T)[1:10]
+```
+
+    ## 
+    ##               Telltale Games           Sports Interactive 
+    ##                           22                           16 
+    ## Out of the Park Developments              Visual Concepts 
+    ##                            8                            8 
+    ##                       Alawar             Mia Blais-CÃ´tÃ© 
+    ##                            7                            7 
+    ##               Victor Corradi  3D Realms (Apogee Software) 
+    ##                            6                            5 
+    ##             Epic Games, Inc. Konami Digital Entertainment 
+    ##                            5                            5
+
+By exploring the removed games, we can observe that the majority of them
+were developed by Telltale Games and Sports Interactive. This is due to
+the fact that license agreements for copyrighted brands are only valid
+for a limited period of time. It’s intriguing to note that there are 5
+games from Epic Games that were removed since the launch of the
+platform. We can take a closer look at these games.
+
+``` r
+removed_developers<-names(sort(table(slibrary_meta[!is.na(slibrary_meta$V22),14][slibrary_meta[!is.na(slibrary_meta$V22),14]!=""]),decreasing = T)[1:10])
+
+slibrary_meta[!is.na(slibrary_meta$V22),][slibrary_meta[!is.na(slibrary_meta$V22),]$V14 %in% removed_developers,c(1,14)][1:10,]
+```
+
+    ##                                                                 V1
+    ## 100                                          Football Manager 2017
+    ## 203                                          Football Manager 2018
+    ## 379                   Mystery Masters: Psycho Train Deluxe Edition
+    ## 418                                    Out of the Park Baseball 18
+    ## 501                                   Poker Night at the Inventory
+    ## 509                                    Out of the Park Baseball 17
+    ## 524                                 Alex Hunter - Lord of the Mind
+    ## 733 House of 1000 Doors: The Palm of Zoroaster Collector's Edition
+    ## 734                          House of 1,000 Doors - Family Secrets
+    ## 877                                    Out of the Park Baseball 15
+    ##                              V14
+    ## 100           Sports Interactive
+    ## 203           Sports Interactive
+    ## 379                       Alawar
+    ## 418 Out of the Park Developments
+    ## 501               Telltale Games
+    ## 509 Out of the Park Developments
+    ## 524                       Alawar
+    ## 733                       Alawar
+    ## 734                       Alawar
+    ## 877 Out of the Park Developments
+
+These are some of those removed games.

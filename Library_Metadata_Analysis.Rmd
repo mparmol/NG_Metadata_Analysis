@@ -48,7 +48,7 @@ slibrary_meta<-read.delim(input_file,header = F)
 #### [**6- Best rated games**](#best-rated-games)
 #### [**7- Are Games shorter each year**](#are-games-shorter-each-year)
 #### [**8- What happened to removed games**](#what-happened-to-removed-games)
-
+#### [**9- Conclusions**](#conclusions)
 
 # Preprocessing
 
@@ -78,7 +78,7 @@ print(dim(slibrary_meta[!is.na(slibrary_meta$V3) &  !is.na(slibrary_meta$V4),])[
 From the total number we can see the similarity distribution.
 
 ```{r, warning=FALSE}
-ggplot(slibrary_meta,aes(V5)) + geom_bar()
+ggplot(slibrary_meta,aes(V5)) + geom_bar() +xlab("Similarity") + theme_bw()
 ```
 
 Being the total number of exact matches (similarity = 1)
@@ -148,7 +148,7 @@ slibrary_meta_lim[,4]<-as.numeric(slibrary_meta_lim[,4])
 slibrary_meta_lim<-slibrary_meta_lim[slibrary_meta_lim[,3]>0,] # We remove the 0 hours game
 slibrary_meta_lim<-slibrary_meta_lim[slibrary_meta_lim[,4]>0,]
 
-ggplot(slibrary_meta_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
+ggplot(slibrary_meta_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Time to finish (h)") + xlab("Time to 100% complete (h)")
 ```
 
 Many sport simulation games, specifically Football Manager games, exhibit the most skewed distribution when comparing both parameters, based on farming and repetition. Completing Football Manager games at 100% requires around 1000 hours of playtime, making it easy to view these as achievements that would take an excessive amount of time to achieve through farming.
@@ -196,6 +196,8 @@ These are the best rated game to entirely complete in a single run
 We can use this method to focus in the next game to play according to this criteria, just but filtering out the games already completed at 100%.This is the list of the next 10 possible games.
 
 ```{r}
+
+paste("Total number completed 100% games:",length(slibrary_meta[!is.na(slibrary_meta$V17),17]))
 
 out<-slibrary_meta_lim[slibrary_meta_lim$time_index==1 & is.na(slibrary_meta_lim$V17),][1:10,c(1,11,3,14,19,23)]
 colnames(out)<-c("Name","Genre","Time to complete (h)","Developer","Release date","Positive rating")
@@ -247,6 +249,12 @@ tags_df[tags_df=="FALSE"]<-0
 
 And see what are the most prevalent Genre and Tags
 
+If you find any issue when executing `word2cloud` install the following dependencies:
+
+> install.packages("webshot")
+
+> webshot::install_phantomjs())
+
 ```{r}
 #Genre
 
@@ -278,7 +286,7 @@ Now, we can examine the data and plot the percentage of each genre, only display
 
 ```{r}
 
-upset(genre_df, sets = genre_split_c, nsets = length(genre_split_c), mb.ratio = c(0.5,0.5), order.by = "freq", mainbar.y.label = "Número de filas")
+upset(genre_df, sets = genre_split_c, nsets = length(genre_split_c), mb.ratio = c(0.5,0.5), order.by = "freq", mainbar.y.label = "Total count")
 
 ```
 
@@ -298,7 +306,7 @@ tags_sample<-tags_sample[-dim(tags_sample)[1],]
 
 tags_split_c <- colnames(tags_sample)[2:dim(tags_sample)[2]]
 
-upset(tags_sample, sets = tags_split_c, nsets = length(tags_split_c), mb.ratio = c(0.5,0.5), order.by = "freq", mainbar.y.label = "Número de filas")
+upset(tags_sample, sets = tags_split_c, nsets = length(tags_split_c), mb.ratio = c(0.5,0.5), order.by = "freq", mainbar.y.label = "Total count")
 ```
 
 The results reveal interesting insights, such as a strong correlation between games with female protagonists, fantasy elements, adventurous elements, and great soundtracks. It is also noteworthy that the tags tend to align with the genres, with single-player being the most prominent.
@@ -320,7 +328,7 @@ subset_genre$V11 <- factor(subset_genre$V11, levels = average_values$V11[order(a
 
 subset_genre<-subset_genre[subset_genre$V11!="",]
 
-ggplot(subset_genre,aes(V11,log2(V3),fill=V11)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none")
+ggplot(subset_genre,aes(V11,log2(V3),fill=V11)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none") + xlab(NULL) + ylab("log2 Time (h)")
 ```
 
 Looking at the results we can see that games that are more prevalent in the library are the games that need less time to finish. Would it be the same to 100% complete?
@@ -340,7 +348,7 @@ subset_genre$V11 <- factor(subset_genre$V11, levels = average_values$V11[order(a
 
 subset_genre<-subset_genre[subset_genre$V11!="",]
 
-ggplot(subset_genre,aes(V11,log2(V4),fill=V11)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none")
+ggplot(subset_genre,aes(V11,log2(V4),fill=V11)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none") + xlab(NULL) + ylab("log2 Time (h)")
 ```
 
 The basically follow the same pattern.
@@ -448,10 +456,10 @@ subset_slibrary_meta$year <- as.factor(subset_slibrary_meta$year)
 
 subset_slibrary_meta<-subset_slibrary_meta[!is.na(subset_slibrary_meta$year),]
 
-ggplot(subset_slibrary_meta,aes(year,log2(V3),fill=year)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none")
+ggplot(subset_slibrary_meta,aes(year,log2(V3),fill=year)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none") + ylab("log2 Time (h)")
 ```
 
-We can see that there is no a clear tendecy of games having a shorter playing time along the years.
+We can see that there is no a clear tendency of games having a shorter playing time along the years.
 
 # What happened to removed games
 
@@ -472,6 +480,17 @@ slibrary_meta[!is.na(slibrary_meta$V22),][slibrary_meta[!is.na(slibrary_meta$V22
 
 These are some of those removed games.
 
+# Conclusions
 
+`r strsplit(strsplit(input_file,"Full_")[[1]][2],"\\.")[[1]][1]` Steam Library 
+
+This library contains more than 3000 games of different genres, from which we can draw several conclusions.
+
+1. The majority of these games are in the Adventure, Action and Indie genres, while the least common are sports and simulation. This data correlates with a low game completion time compared to other groups.
+2. The number of games completed at 100% is 91, a data that encompasses games of different genres and completion time. The tool displays and proposes which game could be next to complete at 100%.
+3. The rating does not depend on the genre of the game, but there is a negative bias towards sports games.
+4. The average play time does not decrease over the years, despite the fact that the industry is producing more and more casual games.
+5. The games removed from Steam are from different distributors, but some like Telltale Games stand out for eventually removing all their games (licensed) from the platform.
+6. The method used to find similarities in the HowLongToBeat database makes around 1% error on the found games. This value can be accentuated in libraries with a greater number of unknown games.
 
 

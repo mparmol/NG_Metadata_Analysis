@@ -47,6 +47,8 @@ slibrary_meta<-read.delim(input_file,header = F)
 
 #### [**8- What happened to removed games**](#what-happened-to-removed-games)
 
+#### [**9- Conclusions**](#conclusions)
+
 # Preprocessing
 
 The preprocessing can be applied to the similarity parameter. We can
@@ -87,7 +89,7 @@ print(dim(slibrary_meta[!is.na(slibrary_meta$V3) &  !is.na(slibrary_meta$V4),])[
 From the total number we can see the similarity distribution.
 
 ``` r
-ggplot(slibrary_meta,aes(V5)) + geom_bar()
+ggplot(slibrary_meta,aes(V5)) + geom_bar() +xlab("Similarity") + theme_bw()
 ```
 
 ![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
@@ -221,7 +223,7 @@ slibrary_meta_lim[,4]<-as.numeric(slibrary_meta_lim[,4])
 slibrary_meta_lim<-slibrary_meta_lim[slibrary_meta_lim[,3]>0,] # We remove the 0 hours game
 slibrary_meta_lim<-slibrary_meta_lim[slibrary_meta_lim[,4]>0,]
 
-ggplot(slibrary_meta_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Tiempo pasartelo (h)") + xlab("Tiempo completarlo 100% (h)")
+ggplot(slibrary_meta_lim, aes(V4,V3,label=V1)) + geom_point() + theme_bw() + geom_text(hjust=0, vjust=0) + ylab("Time to finish (h)") + xlab("Time to 100% complete (h)")
 ```
 
 ![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
@@ -340,6 +342,12 @@ this criteria, just but filtering out the games already completed at
 100%.This is the list of the next 10 possible games.
 
 ``` r
+paste("Total number completed 100% games:",length(slibrary_meta[!is.na(slibrary_meta$V17),17]))
+```
+
+    ## [1] "Total number completed 100% games: 91"
+
+``` r
 out<-slibrary_meta_lim[slibrary_meta_lim$time_index==1 & is.na(slibrary_meta_lim$V17),][1:10,c(1,11,3,14,19,23)]
 colnames(out)<-c("Name","Genre","Time to complete (h)","Developer","Release date","Positive rating")
 out
@@ -415,6 +423,13 @@ tags_df[tags_df=="FALSE"]<-0
 
 And see what are the most prevalent Genre and Tags
 
+If you find any issue when executing `word2cloud` install the following
+dependencies:
+
+> install.packages(“webshot”)
+
+> webshot::install_phantomjs())
+
 ``` r
 #Genre
 
@@ -451,7 +466,7 @@ Now, we can examine the data and plot the percentage of each genre, only
 displaying the most frequent genre combinations.
 
 ``` r
-upset(genre_df, sets = genre_split_c, nsets = length(genre_split_c), mb.ratio = c(0.5,0.5), order.by = "freq", mainbar.y.label = "Número de filas")
+upset(genre_df, sets = genre_split_c, nsets = length(genre_split_c), mb.ratio = c(0.5,0.5), order.by = "freq", mainbar.y.label = "Total count")
 ```
 
 ![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
@@ -476,7 +491,7 @@ tags_sample<-tags_sample[-dim(tags_sample)[1],]
 
 tags_split_c <- colnames(tags_sample)[2:dim(tags_sample)[2]]
 
-upset(tags_sample, sets = tags_split_c, nsets = length(tags_split_c), mb.ratio = c(0.5,0.5), order.by = "freq", mainbar.y.label = "Número de filas")
+upset(tags_sample, sets = tags_split_c, nsets = length(tags_split_c), mb.ratio = c(0.5,0.5), order.by = "freq", mainbar.y.label = "Total count")
 ```
 
 ![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
@@ -504,7 +519,7 @@ subset_genre$V11 <- factor(subset_genre$V11, levels = average_values$V11[order(a
 
 subset_genre<-subset_genre[subset_genre$V11!="",]
 
-ggplot(subset_genre,aes(V11,log2(V3),fill=V11)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none")
+ggplot(subset_genre,aes(V11,log2(V3),fill=V11)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none") + xlab(NULL) + ylab("log2 Time (h)")
 ```
 
 ![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
@@ -527,7 +542,7 @@ subset_genre$V11 <- factor(subset_genre$V11, levels = average_values$V11[order(a
 
 subset_genre<-subset_genre[subset_genre$V11!="",]
 
-ggplot(subset_genre,aes(V11,log2(V4),fill=V11)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none")
+ggplot(subset_genre,aes(V11,log2(V4),fill=V11)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none") + xlab(NULL) + ylab("log2 Time (h)")
 ```
 
 ![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
@@ -662,7 +677,7 @@ subset_slibrary_meta$year <- as.factor(subset_slibrary_meta$year)
 
 subset_slibrary_meta<-subset_slibrary_meta[!is.na(subset_slibrary_meta$year),]
 
-ggplot(subset_slibrary_meta,aes(year,log2(V3),fill=year)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none")
+ggplot(subset_slibrary_meta,aes(year,log2(V3),fill=year)) + geom_violin() + geom_boxplot(width=0.2) + theme_bw() + theme(axis.text.x = element_text(angle=45, hjust=1)) + theme(legend.position = "none") + ylab("log2 Time (h)")
 ```
 
     ## Warning: Groups with fewer than two data points have been dropped.
@@ -675,7 +690,7 @@ ggplot(subset_slibrary_meta,aes(year,log2(V3),fill=year)) + geom_violin() + geom
 
 ![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
 
-We can see that there is no a clear tendecy of games having a shorter
+We can see that there is no a clear tendency of games having a shorter
 playing time along the years.
 
 # What happened to removed games
@@ -736,3 +751,27 @@ slibrary_meta[!is.na(slibrary_meta$V22),][slibrary_meta[!is.na(slibrary_meta$V22
     ## 877 Out of the Park Developments
 
 These are some of those removed games.
+
+# Conclusions
+
+marko_pakete Steam Library
+
+This library contains more than 3000 games of different genres, from
+which we can draw several conclusions.
+
+1.  The majority of these games are in the Adventure, Action and Indie
+    genres, while the least common are sports and simulation. This data
+    correlates with a low game completion time compared to other groups.
+2.  The number of games completed at 100% is 91, a data that encompasses
+    games of different genres and completion time. The tool displays and
+    proposes which game could be next to complete at 100%.
+3.  The rating does not depend on the genre of the game, but there is a
+    negative bias towards sports games.
+4.  The average play time does not decrease over the years, despite the
+    fact that the industry is producing more and more casual games.
+5.  The games removed from Steam are from different distributors, but
+    some like Telltale Games stand out for eventually removing all their
+    games (licensed) from the platform.
+6.  The method used to find similarities in the HowLongToBeat database
+    makes around 1% error on the found games. This value can be
+    accentuated in libraries with a greater number of unknown games.

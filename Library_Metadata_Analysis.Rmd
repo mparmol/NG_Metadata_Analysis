@@ -43,7 +43,7 @@ slibrary_meta<-read.delim(input_file,header = F)
 #### [**1- Preprocessing**](#preprocessing)
 #### [**2- HowLongToBeat method accuracy**](#howlongtobeat-method-accuracy)
 #### [**3- Basic data analysis**](#basic-data-analysis)
-#### [**4- Recomended and forbiden games for achievement collectors**](#recomended-and-forbiden-games-for-achievement-collectors)
+#### [**4- Games recommended and prohibited for achievement collectors**](#games-recommended-and-prohibited-for-achievement-collectors)
 #### [**5- Genre analysis**](#genre-analysis)
 #### [**6- Best rated games**](#best-rated-games)
 #### [**7- Are Games shorter each year**](#are-games-shorter-each-year)
@@ -134,7 +134,7 @@ paste(round(mean(na.omit(slibrary_meta$V23)),digits = 2),"+",round(sd(na.omit(sl
 
 ```
 
-# Recomended and forbiden games for achievement collectors
+# Games recommended and prohibited for achievement collectors
 
 If you are someone who wants to complete games to 100%, you may be interested in finding games that are easy to achieve that goal. This means not just the shortest games, but also those that can be completed simply by playing through them once, without the need for repetitive farming or grinding. A comparison of the time it takes to beat a game versus the time it takes to complete it at 100% can shed light on this topic. 
 

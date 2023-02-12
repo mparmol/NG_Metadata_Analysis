@@ -37,7 +37,7 @@ slibrary_meta<-read.delim(input_file,header = F)
 
 #### [**3- Basic data analysis**](#basic-data-analysis)
 
-#### [**4- Recomended and forbiden games for achievement collectors**](#recomended-and-forbiden-games-for-achievement-collectors)
+#### [**4- Games recommended and prohibited for achievement collectors**](#games-recommended-and-prohibited-for-achievement-collectors)
 
 #### [**5- Genre analysis**](#genre-analysis)
 
@@ -203,7 +203,7 @@ paste(round(mean(na.omit(slibrary_meta$V23)),digits = 2),"+",round(sd(na.omit(sl
 
     ## [1] "74.89 + 19.31"
 
-# Recomended and forbiden games for achievement collectors
+# Games recommended and prohibited for achievement collectors
 
 If you are someone who wants to complete games to 100%, you may be
 interested in finding games that are easy to achieve that goal. This

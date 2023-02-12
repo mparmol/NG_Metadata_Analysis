@@ -339,7 +339,7 @@ These are the best rated game to entirely complete in a single run
 
 We can use this method to focus in the next game to play according to
 this criteria, just but filtering out the games already completed at
-100%.This is the list of the next 10 possible games.
+100%. This is the list of the next 10 possible games.
 
 ``` r
 paste("Total number completed 100% games:",length(slibrary_meta[!is.na(slibrary_meta$V17),17]))
@@ -603,9 +603,9 @@ plot(a)
 ![](Library_Metadata_Analysis_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
 
 We can observe a strong association between single player games that are
-action-based, or cooperative multiplayer games. Similarly, online
-cooperative games have a strong link with PvE games. In turn, RPG games
-are often related to fantastical worlds.
+action-based, or cooperative multiplayer games. There is a strong
+correlation between RPG games with nature, PvE, dragons and
+customization, which makes sense.
 
 # Best rated games
 
